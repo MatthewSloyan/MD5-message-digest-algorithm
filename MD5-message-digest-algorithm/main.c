@@ -9,41 +9,47 @@
 #include<string.h>
 #include<conio.h>
 
+// Functions
+void menuSystem(unsigned int *userOption);
+
 void main()
 {
-	FILE* filep;
-	int userSelection = 0;
+	FILE *filep;
+	unsigned int userOption = 0;
+
+	char userString[100];
+	char filePath[150];
 
 	printf("MD5 Hash Algorithm\n");
 	printf("===============\n");
 
 	//allow the user to enter a selection from the menu (intitial read)
+	menuSystem(&userOption);
+
+	// main while loop of program until 0 is encountered
+	while (userOption != 0)
+	{
+
+		//subsequent Read
+		menuSystem(&userOption);
+	} //while
+}
+
+void menuSystem(unsigned int *userOption)
+{
+	unsigned int userOptionCopy = 0;
+
 	do
 	{
 		printf("\nPlease select an option\n [1] Enter text to hash\n [2] Hash with file\n");
 		printf(" [0] To Exit\n");
-		scanf_s("%d", &userSelection);
+		scanf_s("%d", &userOptionCopy);
 
-		if (userSelection < 0 || userSelection > 3) {
+		*userOption = userOptionCopy;
+
+		if (*userOption < 0 || *userOption > 2) {
 			printf("Error! The value entered must be between 0 and 2, please try again\n");
 		}
 
-	} while (userSelection < 0 || userSelection > 3); //validation to allow only numbers between 0 and 2
-
-	// main while loop of program until 0 is encountered
-	while (userSelection != 0)
-	{
-		//subsequent Read
-		do
-		{
-			printf("\nPlease select an option\n [1] Enter text to hash\n [2] Hash with file\n");
-			printf(" [0] To Exit\n");
-			scanf_s("%d", &userSelection);
-
-			if (userSelection < 0 || userSelection > 3) {
-				printf("Error! The value entered must be between 0 and 2, please try again\n");
-			}
-
-		} while (userSelection < 0 || userSelection > 3); //validation to allow only numbers between 0 and 2
-	} //while
+	} while (*userOption < 0 || *userOption > 2); //validation to allow only numbers between 0 and 2
 }
