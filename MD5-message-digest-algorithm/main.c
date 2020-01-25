@@ -81,5 +81,30 @@ void menuSystem(unsigned int *userOption)
 
 char readFile()
 {
-	
+	FILE *filep = NULL;
+	char filePath[150];
+	char fileString[300] = "";
+
+	printf("\nPlease enter the file path to the file you would like to hash: ");
+	scanf_s("%s", filePath);
+
+	//open the that the player has entered if found
+	filep = fopen_s(filep, filePath, "r");
+
+	if (filep == NULL)
+	{
+		printf("The file cannot be opened\n");
+	}
+
+	else
+	{
+		while (!feof(filep))
+		{
+			//read in string from file.
+			fscanf_s(filep, "%s", fileString);
+		}
+		fclose(filep); //close the file
+	}
+
+	return fileString;
 }
