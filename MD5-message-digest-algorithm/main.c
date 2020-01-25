@@ -11,14 +11,16 @@
 
 // Functions
 void menuSystem(unsigned int *userOption);
+char readFile();
 
 void main()
 {
-	FILE *filep;
 	unsigned int userOption = 0;
 
-	char userString[100];
-	char filePath[150];
+	char userString[100] = "";
+	char fileString[200] = "";
+
+	int i, j;
 
 	printf("MD5 Hash Algorithm\n");
 	printf("===============\n");
@@ -29,6 +31,29 @@ void main()
 	// main while loop of program until 0 is encountered
 	while (userOption != 0)
 	{
+		//switch based on the user input
+		switch (userOption)
+		{
+		case 1:
+			printf("\nPlease enter the string you would like to hash: ");
+			scanf_s("%s", userString);
+
+			printf("%s", userString);
+
+			break;
+		case 2:
+			strcpy_s(fileString, sizeof fileString, readFile());
+
+			if (fileString != "") {
+				printf("%s", fileString);
+			}
+			else {
+				printf("\nError loading file, please try again.");
+			}
+			break;
+		default:
+			printf("Invalid option\n");
+		}
 
 		//subsequent Read
 		menuSystem(&userOption);
@@ -52,4 +77,9 @@ void menuSystem(unsigned int *userOption)
 		}
 
 	} while (*userOption < 0 || *userOption > 2); //validation to allow only numbers between 0 and 2
+}
+
+char readFile()
+{
+	
 }
