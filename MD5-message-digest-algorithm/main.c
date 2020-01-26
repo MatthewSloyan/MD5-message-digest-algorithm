@@ -36,13 +36,13 @@ void main()
 		{
 		case 1:
 			printf("\nPlease enter the string you would like to hash: ");
-			scanf_s("%s", userString);
+			scanf("%s", userString);
 
 			printf("%s", userString);
 
 			break;
 		case 2:
-			strcpy_s(fileString, sizeof fileString, readFile());
+			strcpy(fileString, readFile());
 
 			if (fileString != "") {
 				printf("%s", fileString);
@@ -68,7 +68,7 @@ void menuSystem(unsigned int *userOption)
 	{
 		printf("\nPlease select an option\n [1] Enter text to hash\n [2] Hash with file\n");
 		printf(" [0] To Exit\n");
-		scanf_s("%d", &userOptionCopy);
+		scanf("%d", &userOptionCopy);
 
 		*userOption = userOptionCopy;
 
@@ -85,11 +85,11 @@ char readFile()
 	char filePath[150];
 	char fileString[300] = "";
 
-	printf("\nPlease enter the file path to the file you would like to hash: ");
-	scanf_s("%s", filePath);
+	//printf("\nPlease enter the file path to the file you would like to hash: ");
+	//scanf("%s", filePath);
 
 	//open the that the player has entered if found
-	filep = fopen_s(filep, filePath, "r");
+	filep = fopen("Test.txt", "r");
 
 	if (filep == NULL)
 	{
@@ -101,8 +101,9 @@ char readFile()
 		while (!feof(filep))
 		{
 			//read in string from file.
-			fscanf_s(filep, "%s", fileString);
+			fscanf(filep, "%s", fileString);
 		}
+		printf("%s", fileString);
 		fclose(filep); //close the file
 	}
 
