@@ -42,6 +42,19 @@ int main(int argc, char *argv[]){
   printf("a = "); print8bits(a); printf("\n");
   printf("~a = "); print8bits(~a); printf("\n");
 
+  printf("\n\n");
+  printf("  1 = "); print8bits(1); printf("\n");
+  printf("(1 << 3) =  "); print8bits(1 << 3); printf("\n");
+  
+  printf("\n\n");
+  printf("  99 = "); print8bits(99); printf("\n");
+  printf("(99 << 3) =  "); print8bits((((uint8_t) 99) << ((uint8_t)3))); printf("\n");
+
+  printf("\n\n");
+  printf("  99 = "); print8bits(99); printf("\n");
+  printf("(1ULL << 3)         "); print8bits((1ULL << 3)     ); printf("\n");
+  printf("(1ULL << 3) & 99 =  "); print8bits((1ULL << 3) & 99); printf("\n");
+
   //printf("\t%llx\t%lld\n",s, s);
 
   return 0;	
