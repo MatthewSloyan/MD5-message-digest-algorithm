@@ -10,7 +10,14 @@ uint64_t nozerobytes(uint64_t nobits) {
     //ULL = unsigned long long. Tells C compiler it should be a 64 bit int.
     uint64_t result = 512ULL - (nobits % 512ULL);
 
-    return 0
+    // Add another block.
+    if (result < 65)
+        result += 512;
+
+    // Take away bits.
+    result -= 72;
+
+    return (result / 8ULL);
 }
 
 int main(int argc, char *argv[]){
@@ -39,6 +46,16 @@ int main(int argc, char *argv[]){
     // Add 1 bit
     // Bits: 1000 0000 = 1 bit followed by 7 zeros to pad. Always has to be 8bits.
     printf("%02" PRIx8, 0x80); 
+
+    // Pad with zeros
+    for(uint64_t i = nozerobytes(nobits); i > 0; i--) {
+        printf("%02" PRIx8, 0x00);
+    }
+
+    // Print out the length of the file in bytes (big endian)
+    printf("%016" PRIx64 "\n", nobits);
+
+    // Message is now 512 bits.
 
     fclose(infile);
 
