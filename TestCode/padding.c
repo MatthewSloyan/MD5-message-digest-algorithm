@@ -4,6 +4,12 @@
 #include<stdio.h>
 #include<inttypes.h>
 
+union block{
+  uint64_t sixfour[8];
+  uint32_t threetwo[16];
+  uint8_t eight[64];
+};
+
 // k = Number of zeros to append.
 uint64_t nozerobytes(uint64_t nobits) {
 
@@ -29,18 +35,20 @@ int main(int argc, char *argv[]){
     
     FILE *infile = fopen(argv[1], "rb");
     if(!infile){
-        printf("Error: couldn't open file %s. \n", argv[1])
+        printf("Error: couldn't open file %s. \n", argv[1]);
         return 1;
     }
 
-    uint8_t b;
+    //uint8_t b;
     uint64_t nobits;
+    union block M;
+    uint8_t i;
 
-    // PRIu8 defined by inttypes.h, it's the correct format specifier for an unsigned 8bit int. 
+    // PRIu8 defined by inttypes.h, it's the correct format specifier for an unsigned 8bit int.
     // Prints out the bytes (b) of the file in hex.
     // Could improve file reading.
-    for(nobits = 0; fread(&b, 1, 1, infile == 1; nobits += 8) {
-        printf("%02" PRIx8, b);
+    for(nobits = 0, i = 0; fread(&M.eight[i], 1, 1, infile) == 1; nobits += 8) {
+        printf("%02" PRIx8, M.eight[i]);
     }
 
     // Add 1 bit
