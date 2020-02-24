@@ -24,13 +24,6 @@ const uint32_t K[] = {
     0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2 
 };
 
-// Initial hash values
-// Section 5.5.3
-uint32_t H[] = {
-    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 
-    0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
-};
-
 uint32_t Ch(uint32_t x, uint32_t y , uint32_t, z){
     // Section 4.1.2
     return (x & y) ^ (~x & z);
@@ -71,30 +64,93 @@ uint32_t sig1(uint32_t x){
     return ROTR(x, 17) ^ ROTR(x, 19) ^ SHR(x, 10);
 }
 
+// Padding for SHA 256
+// Matthew Sloyan - Coded from video provided by lecturer.
+
+union block{
+  uint64_t sixfour[8];
+  uint32_t threetwo[16];
+  uint8_t eight[64];
+};
+
+// k = Number of zeros to append.
+uint64_t nozerobytes(uint64_t nobits) {
+
+    //ULL = unsigned long long. Tells C compiler it should be a 64 bit int.
+    uint64_t result = 512ULL - (nobits % 512ULL);
+
+    // Add another block.
+    if (result < 65)
+        result += 512;
+
+    // Take away bits.
+    result -= 72;
+
+    return (result / 8ULL);
+}
+
+int nextblock(union block *M, FILE *infile){
+
+    uint64_t nobits;
+    uint8_t i;
+
+    // PRIu8 defined by inttypes.h, it's the correct format specifier for an unsigned 8bit int.
+    // Prints out the bytes (b) of the file in hex.
+    // Could improve file reading.
+    for(nobits = 0, i = 0; fread(&M.eight[i], 1, 1, infile) == 1; nobits += 8) {
+        printf("%02" PRIx8, M.eight[i]);
+    }
+
+    // Add 1 bit
+    // Bits: 1000 0000 = 1 bit followed by 7 zeros to pad. Always has to be 8bits.
+    printf("%02" PRIx8, 0x80); 
+
+    // Pad with zeros
+    for(uint64_t i = nozerobytes(nobits); i > 0; i--) {
+        printf("%02" PRIx8, 0x00);
+    }
+
+    // Print out the length of the file in bytes (big endian)
+    printf("%016" PRIx64 "\n", nobits);
+
+    // Message is now 512 bits.
+
+}
+
 int main(int argc, char *argv[]){
 
-    uint32_t x = 0x0f0f0f0f;
-    uint32_t y = 0xcccccccc;
-    uint32_t z = 0x55555555;
+    if (argc != 2){
+        printf("Error: expected single filename as argument.");
+        return 1;
+    }
+    
+    FILE *infile = fopen(argv[1], "rb");
+    if(!infile){
+        printf("Error: couldn't open file %s. \n", argv[1]);
+        return 1;
+    }   
 
-    // %08 = right aligned 8 characters padded with 0's from left.
-    print("x            = %08x\n", x);
-    print("y            = %08x\n", y);
-    print("z            = %08x\n", z);
+    // Initial hash values
+    // Section 5.5.3
+    uint32_t H[] = {
+       0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 
+       0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+    };
 
-    printf("Ch(x, y, z) = %08x\n", Ch(x, y, z));
-    printf("Maj(x, y, z)= %08x\n", Maj(x, y, z));
+    // The current padded message block.
+    union block M;
 
-    printf("SHR(x, 4)   = %08x\n", SHR(x, 4));
-    printf("ROTR(x, 4)  = %08x\n", ROTR(x, 4));
+    // Read through all the padded message blocks.
+    while (nextblock(&M, infile)){
+      // Calculate the next hash value.
+      H = nexthash(&M,&H);
+    }
 
-    printf("Sig0(x)  = %08x\n", Sig0(x));
-    printf("Sig1(x)  = %08x\n", Sig1(x));
-    printf("sig0(x)  = %08x\n", sig0(x));
-    printf("sig0(x)  = %08x\n", sig0(x));
+    for(int i = 0; i < 8; i++)
+      print("%02" PRIX32, H[i]);
+    printf("\n");
 
-    printf("K[20]    = %08x\n", K[20]);
-    printf("H[2]     = %08x\n", H[2]);
+    fclose(infile);
 
     return 0;
 }
