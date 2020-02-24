@@ -74,8 +74,8 @@ union block{
 };
 
 // Read = Still reading file.
-// Pad0 = get to eof, don't have enough space to do all padding.
-// pad1 = read to end block perfectly, E.g 512 bits + padding.
+// Pad0 = get to eof, don't have enough space to do all padding. Pad rest with 0's
+// pad1 = read to end block perfectly, E.g 512 bits + padding. 1 bit + 450 0 bits.
 // Finish = Done all padding.
 enum flag {READ, PAD0, PAD1, FINISH};
 
@@ -119,11 +119,11 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
     printf("%016" PRIx64 "\n", *nobits);
 
     // Message is now 512 bits.
-
 }
 
 void nexthash(union block *M, uint32_t *H){
 
+  
 }
 
 int main(int argc, char *argv[]){
@@ -148,9 +148,11 @@ int main(int argc, char *argv[]){
 
     // The current padded message block.
     union block M;
+    uint64_t nobits = 0;
+    enum flag status = READ;
 
     // Read through all the padded message blocks.
-    while (nextblock(&M, infile)){
+    while (nextblock(&M, infile, nobits, status)){
       // Calculate the next hash value.
       H = nexthash(&M, &H);
     }
