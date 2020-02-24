@@ -73,6 +73,12 @@ union block{
   uint8_t eight[64];
 };
 
+// Read = Still reading file.
+// Pad0 = get to eof, don't have enough space to do all padding.
+// pad1 = read to end block perfectly, E.g 512 bits + padding.
+// Finish = Done all padding.
+enum flag {READ, PAD0, PAD1, FINISH};
+
 // k = Number of zeros to append.
 uint64_t nozerobytes(uint64_t nobits) {
 
@@ -89,15 +95,14 @@ uint64_t nozerobytes(uint64_t nobits) {
     return (result / 8ULL);
 }
 
-int nextblock(union block *M, FILE *infile){
+int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status ){
 
-    uint64_t nobits;
     uint8_t i;
 
     // PRIu8 defined by inttypes.h, it's the correct format specifier for an unsigned 8bit int.
     // Prints out the bytes (b) of the file in hex.
     // Could improve file reading.
-    for(nobits = 0, i = 0; fread(&M.eight[i], 1, 1, infile) == 1; nobits += 8) {
+    for(*nobits = 0, i = 0; fread(&M.eight[i], 1, 1, infile) == 1; *nobits += 8) {
         printf("%02" PRIx8, M.eight[i]);
     }
 
@@ -106,14 +111,18 @@ int nextblock(union block *M, FILE *infile){
     printf("%02" PRIx8, 0x80); 
 
     // Pad with zeros
-    for(uint64_t i = nozerobytes(nobits); i > 0; i--) {
+    for(uint64_t i = nozerobytes(*nobits); i > 0; i--) {
         printf("%02" PRIx8, 0x00);
     }
 
     // Print out the length of the file in bytes (big endian)
-    printf("%016" PRIx64 "\n", nobits);
+    printf("%016" PRIx64 "\n", *nobits);
 
     // Message is now 512 bits.
+
+}
+
+void nexthash(union block *M, uint32_t *H){
 
 }
 
@@ -143,7 +152,7 @@ int main(int argc, char *argv[]){
     // Read through all the padded message blocks.
     while (nextblock(&M, infile)){
       // Calculate the next hash value.
-      H = nexthash(&M,&H);
+      H = nexthash(&M, &H);
     }
 
     for(int i = 0; i < 8; i++)
