@@ -14,15 +14,14 @@
 void menuSystem(unsigned int *userOption);
 char readFile();
 uint32_t f(uint32_t x, uint32_t y , uint32_t, z);
+uint32_t g(uint32_t x, uint32_t y , uint32_t, z);
+uint32_t h(uint32_t x, uint32_t y , uint32_t, z);
+uint32_t i(uint32_t x, uint32_t y , uint32_t, z);
 
 // hese 32 bit registers are initialized to the following values in hexadecimal, low-order bytes first.
 const uint32_t digest[] = { 0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210 };
 
-//F(X,Y,Z) = XY v not(X) Z
-//G(X,Y,Z) = XZ v Y not(Z)
-//H(X,Y,Z) = X xor Y xor Z
-//I(X,Y,Z) = Y xor (X v not(Z))
-
+// Bitwise operators in c
 // & (bitwise AND)
 // | (bitwise OR - v)
 // ^ (bitwise XOR)
@@ -31,6 +30,18 @@ const uint32_t digest[] = { 0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210 };
 // ~ (bitwise NOT(X))
 
 // four auxiliary functions (f, g, h and i) that each take as input three 32-bit words and produce as output one 32-bit word.
+// F(X,Y,Z) = XY v not(X) Z
+// G(X,Y,Z) = XZ v Y not(Z)
+// H(X,Y,Z) = X xor Y xor Z
+// I(X,Y,Z) = Y xor (X v not(Z))
+
+uint32_t f(uint32_t x, uint32_t y , uint32_t, z){
+    return (x & y) | (~x & z);
+}
+
+uint32_t g(uint32_t x, uint32_t y , uint32_t, z){
+    return (x & z) | (y & ~z);
+}
 
 uint32_t h(uint32_t x, uint32_t y , uint32_t, z){
     return x ^ y ^ z;
