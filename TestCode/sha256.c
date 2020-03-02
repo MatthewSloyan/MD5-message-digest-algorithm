@@ -1,6 +1,6 @@
 // Secure Hash Algorithm 256-bit - Coded from video supplied by lecturer.
 #include<stdio.h>
-#include<stdint.h>
+#include<inttypes.h>
 
 // Array of constants of first thirty-two bits of the 
 // fractional parts of the cube roots of the first sixty four prime numbers
@@ -77,23 +77,7 @@ union block{
 // Pad0 = get to eof, don't have enough space to do all padding. Pad rest with 0's
 // pad1 = read to end block perfectly, E.g 512 bits + padding. 1 bit + 450 0 bits.
 // Finish = Done all padding.
-enum flag {READ, PAD0, PAD1, FINISH};
-
-// k = Number of zeros to append.
-uint64_t nozerobytes(uint64_t nobits) {
-
-    //ULL = unsigned long long. Tells C compiler it should be a 64 bit int.
-    uint64_t result = 512ULL - (nobits % 512ULL);
-
-    // Add another block.
-    if (result < 65)
-        result += 512;
-
-    // Take away bits.
-    result -= 72;
-
-    return (result / 8ULL);
-}
+enum flag {READ, PAD0, FINISH};
 
 int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status ){
 
@@ -101,25 +85,11 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
     if (*status = FINISH)
         return 0;
 
-    if (*status = PAD1) {
-        M.eight[0] = 0x80;
-
-        // Sets all bits to 0.
-        // Take away 8byte int (64 - 8 = 56)
-        for (int i = 1; i < 56; i++){
-            M.eight[i] = 0;  
-        }
-
-        M.sixfour[7] = *nobits;
-        *status = FINISH;
-        return 1;
-    }
-
     if (*status = PAD0) {
         // Sets all bits to 0.
         // Take away 8byte int (64 - 8 = 56)
         for (int i = 1; i < 56; i++){
-            M.eight[i] = 0;  
+            M->eight[i] = 0;  
         }
 
         M.sixfour[7] = *nobits;
@@ -128,16 +98,16 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
     }
 
     // Read 1 byte 64 times.
-    size_t nobytesread = fread(M.eight, 1, 64, infile);
-
+    size_t nobytesread = fread(M->eight, 1, 64, infile);
     if (nobytesread == 64)
         return 1;
 
     // If we can fit all padding in last block in last block.
     if (nobytesread < 56){
+        // Add 1 bit to the start.
         M.eight[nobytesread] = 0x80;
         for (int i = nobytesread + 1; i < 56; i++){
-            M.eight[i] = 0;
+            M->eight[i] = 0;
         }
 
         M.sixfour[7] = *nobits;
@@ -145,10 +115,14 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
         return 1;
     }
 
-    // Pad with zeros
-    for(uint64_t i = nozerobytes(*nobits); i > 0; i--) {
-        printf("%02" PRIx8, 0x00);
+    // Read at least 56 bits but less than 64, so pad with 0's
+    // Otherwise we have read between 56 (incl) and 64 (excl) bytes.
+    M->eight[nobytesread] = 0x80;
+    for (int i = nobytesread + 1; i < 64; i++){
+        M->eight[i] = 0;
     }
+    *status = PAD0;
+    return 1;
 }
 
 void nexthash(union block *M, uint32_t *H){
@@ -206,9 +180,9 @@ int main(int argc, char *argv[]){
     enum flag status = READ;
 
     // Read through all the padded message blocks.
-    while (nextblock(&M, infile, nobits, status)){
+    while (nextblock(&M, infile, &nobits, &status)){
       // Calculate the next hash value.
-      nexthash(&M, &H);
+      nexthash(&M, H);
     }
 
     for(int i = 0; i < 8; i++)
