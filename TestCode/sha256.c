@@ -97,28 +97,58 @@ uint64_t nozerobytes(uint64_t nobits) {
 
 int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status ){
 
-    uint8_t i;
+    // Replace with switch.
+    if (*status = FINISH)
+        return 0;
 
-    // PRIu8 defined by inttypes.h, it's the correct format specifier for an unsigned 8bit int.
-    // Prints out the bytes (b) of the file in hex.
-    // Could improve file reading.
-    for(*nobits = 0, i = 0; fread(&M.eight[i], 1, 1, infile) == 1; *nobits += 8) {
-        printf("%02" PRIx8, M.eight[i]);
+    if (*status = PAD1) {
+        M.eight[0] = 0x80;
+
+        // Sets all bits to 0.
+        // Take away 8byte int (64 - 8 = 56)
+        for (int i = 1; i < 56; i++){
+            M.eight[i] = 0;  
+        }
+
+        M.sixfour[7] = *nobits;
+        *status = FINISH;
+        return 1;
     }
 
-    // Add 1 bit
-    // Bits: 1000 0000 = 1 bit followed by 7 zeros to pad. Always has to be 8bits.
-    printf("%02" PRIx8, 0x80); 
+    if (*status = PAD0) {
+        // Sets all bits to 0.
+        // Take away 8byte int (64 - 8 = 56)
+        for (int i = 1; i < 56; i++){
+            M.eight[i] = 0;  
+        }
+
+        M.sixfour[7] = *nobits;
+        *status = FINISH;
+        return 1;
+    }
+
+    // Read 1 byte 64 times.
+    size_t nobytesread = fread(M.eight, 1, 64, infile);
+
+    if (nobytesread == 64)
+        return 1;
+
+    // If we can fit all padding in last block in last block.
+    if (nobytesread < 56){
+        M.eight[nobytesread] = 0x80;
+        for (int i = nobytesread + 1; i < 56; i++){
+            M.eight[i] = 0;
+        }
+
+        M.sixfour[7] = *nobits;
+        *status = FINISH;
+        return 1;
+    }
 
     // Pad with zeros
     for(uint64_t i = nozerobytes(*nobits); i > 0; i--) {
         printf("%02" PRIx8, 0x00);
     }
-
-    // Print out the length of the file in bytes (big endian)
-    printf("%016" PRIx64 "\n", *nobits);
-
-    // Message is now 512 bits.
 }
 
 void nexthash(union block *M, uint32_t *H){
