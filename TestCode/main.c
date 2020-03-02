@@ -17,9 +17,19 @@ uint32_t f(uint32_t x, uint32_t y , uint32_t, z);
 uint32_t g(uint32_t x, uint32_t y , uint32_t, z);
 uint32_t h(uint32_t x, uint32_t y , uint32_t, z);
 uint32_t i(uint32_t x, uint32_t y , uint32_t, z);
+uint32_t ROTL(uint32_t x, int n);
 
-// hese 32 bit registers are initialized to the following values in hexadecimal, low-order bytes first.
-const uint32_t digest[] = { 0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210 };
+// These 32 bit registers are initialized to the following values in hexadecimal, low-order bytes first.
+//const uint32_t digest[] = { 0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210 };
+// These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
+const uint32_t digest[] = { 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476 };
+
+// union block that occupies the same address space and can take the form of a 64, 32, or 8 bit integer.
+union block{
+  uint64_t sixfour[8];
+  uint32_t threetwo[16];
+  uint8_t eight[64];
+};
 
 // Bitwise operators in c
 // & (bitwise AND)
@@ -49,6 +59,11 @@ uint32_t h(uint32_t x, uint32_t y , uint32_t, z){
 
 uint32_t i(uint32_t x, uint32_t y , uint32_t, z){
     return y ^ (x |~ z);
+}
+
+// Push bits off to the left n places, however they are pushed in on the right again (loop around)
+uint32_t ROTL(uint32_t x, int n){
+    return (x << n) | (x >> (32 - n));
 }
 
 void menuSystem(unsigned int *userOption)
