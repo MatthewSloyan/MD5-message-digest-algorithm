@@ -27,9 +27,9 @@ uint64_t swap_endian(uint64_t x){
 int main(int argc, char *argv[]){
     uint64_t x = 0xaa0f5f0c7e810180;
 
-    print("%016" PRIx64 " -> %016" PRIx64 " -> %016" PRIx64 "\n", x, swap_endian(x), swap_endian(swap_endian(x)));
+    printf("%016" PRIx64 " -> %016" PRIx64 " -> %016" PRIx64 "\n", x, swap_endian(x), swap_endian(swap_endian(x)));
 
-    print("%016" PRIx64 " -> %016" PRIx64 " -> %016" PRIx64 "\n", x, bswap_64(x), bswap_64(bswap_64(x)));
+    printf("%016" PRIx64 " -> %016" PRIx64 " -> %016" PRIx64 "\n", x, bswap_64(x), bswap_64(bswap_64(x)));
 
     return 0;
 }

@@ -42,11 +42,11 @@ const WORD K[] = {
 
 // A sixty-four byte block of memory, accessed with different types.
 // Occupies the same space in memory. (Structs, unions are pass by value)
-typedef union {
+union block {
   uint64_t sixfour[8];
   uint32_t threetwo[16];
   uint8_t eight[64];
-} BLOCK;
+};
 
 // Read = Still reading file.
 // Pad0 = get to eof, don't have enough space to do all padding. Pad rest with 0's
@@ -55,11 +55,11 @@ typedef union {
 enum flag {READ, PAD0, FINISH};
 
 // Little or big endian.
-enum _endian {BIG, LITTLE}
+enum _endian {BIG, LITTLE};
 enum _endian endian = BIG;
 
 // Section 6.2.2
-void nexthash(WORD block *M, WORD *H){
+void nexthash(WORD *M, WORD *H){
     
     // Section 6.2.2
     WORD W[64];
@@ -112,7 +112,7 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
     size_t nobytesread = fread(M->eight, 1, 64, infile);
     if (nobytesread == 64) {
         for (i = 0; i < 16; i++){
-            M->threetwo[i] = bswap_32(M->threetwo[i])
+            M->threetwo[i] = bswap_32(M->threetwo[i]);
         }
 
         return 1;
@@ -126,10 +126,10 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
             M->eight[i] = 0;
         }
         for (int i = 0; i < 14; i++){
-            M->threetwo[i] = bswap_32(M->threetwo[i])
+            M->threetwo[i] = bswap_32(M->threetwo[i]);
         }
 
-        M->sixfour[7] = bswap_64(*nobits)
+        M->sixfour[7] = bswap_64(*nobits);
         *status = FINISH;
         return 1;
     }
@@ -138,13 +138,24 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
     // Otherwise we have read between 56 (incl) and 64 (excl) bytes.
     M->eight[nobytesread] = 0x80;
     for (i = nobytesread + 1; i < 64; i++){
-        M->eight[i] = 0;
-        for (int i = 0; i < 16; i++){
-            M->threetwo[i] = bswap_32(M->threetwo[i])
-        }
+        M->eight[i] = 0; 
+    }
+    for (int i = 0; i < 16; i++){
+        M->threetwo[i] = bswap_32(M->threetwo[i]);
     }
     *status = PAD0;
     return 1;
+}
+
+#define BIG_ENDIAN 0
+#define LITTLE_ENDIAN 1
+
+// Test to determine little or big endian machine.
+// Code adapted from: https://helloacm.com/how-to-find-out-whether-a-machine-is-big-endian-or-little-endian-in-cc/
+int TestByteOrder() {
+    short int word = 0x0001;
+    char *b = (char *)&word;
+    return (b[0] ? LITTLE_ENDIAN : BIG_ENDIAN);
 }
 
 int main(int argc, char *argv[]){
@@ -183,10 +194,13 @@ int main(int argc, char *argv[]){
     }
 
     for(int i = 0; i < 8; i++)
-      print("%02" PRIx32, H[i]);
+      printf("%02" PRIx32, H[i]);
     printf("\n");
 
     fclose(infile);
+
+    int r = TestByteOrder();
+    printf("%s\n", r == LITTLE_ENDIAN ? "Little Endian" : "Big Endian");
 
     return 0;
 }
