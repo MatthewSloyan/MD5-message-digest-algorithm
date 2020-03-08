@@ -2,6 +2,7 @@
 // https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
 #include<stdio.h>
 #include<inttypes.h>
+#include<byteswap.h>
 
 // Preprocessor - Section 2.1
 #define WORD uint32_t
@@ -53,6 +54,10 @@ typedef union {
 // Finish = Done all padding.
 enum flag {READ, PAD0, FINISH};
 
+// Little or big endian.
+enum _endian {BIG, LITTLE}
+enum _endian endian = BIG;
+
 // Section 6.2.2
 void nexthash(WORD block *M, WORD *H){
     
@@ -85,6 +90,8 @@ void nexthash(WORD block *M, WORD *H){
 
 int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status ){
 
+    int i;
+
     // Replace with switch.
     if (*status = FINISH)
         return 0;
@@ -92,29 +99,37 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
     if (*status = PAD0) {
         // Sets all bits to 0.
         // Take away 8byte int (64 - 8 = 56)
-        for (int i = 1; i < 56; i++){
+        for (i = 1; i < 56; i++){
             M->eight[i] = 0;  
         }
 
-        M.sixfour[7] = *nobits;
+        M->sixfour[7] = bswap_64(*nobits);
         *status = FINISH;
         return 1;
     }
 
     // Read 1 byte 64 times.
     size_t nobytesread = fread(M->eight, 1, 64, infile);
-    if (nobytesread == 64)
+    if (nobytesread == 64) {
+        for (i = 0; i < 16; i++){
+            M->threetwo[i] = bswap_32(M->threetwo[i])
+        }
+
         return 1;
+    }
 
     // If we can fit all padding in last block in last block.
     if (nobytesread < 56){
         // Add 1 bit to the start.
-        M.eight[nobytesread] = 0x80;
-        for (int i = nobytesread + 1; i < 56; i++){
+        M->eight[nobytesread] = 0x80;
+        for (i = nobytesread + 1; i < 56; i++){
             M->eight[i] = 0;
         }
+        for (int i = 0; i < 14; i++){
+            M->threetwo[i] = bswap_32(M->threetwo[i])
+        }
 
-        M->sixfour[7] = *nobits;
+        M->sixfour[7] = bswap_64(*nobits)
         *status = FINISH;
         return 1;
     }
@@ -122,8 +137,11 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
     // Read at least 56 bits but less than 64, so pad with 0's
     // Otherwise we have read between 56 (incl) and 64 (excl) bytes.
     M->eight[nobytesread] = 0x80;
-    for (int i = nobytesread + 1; i < 64; i++){
+    for (i = nobytesread + 1; i < 64; i++){
         M->eight[i] = 0;
+        for (int i = 0; i < 16; i++){
+            M->threetwo[i] = bswap_32(M->threetwo[i])
+        }
     }
     *status = PAD0;
     return 1;
@@ -142,6 +160,8 @@ int main(int argc, char *argv[]){
         printf("Error: couldn't open file %s. \n", argv[1]);
         return 1;
     }   
+
+    // Test wheter were on little or big endian machine.
 
     // Initial hash values
     // Section 5.5.3
