@@ -53,6 +53,7 @@ typedef union {
 // Finish = Done all padding.
 enum flag {READ, PAD0, FINISH};
 
+// Section 6.2.2
 void nexthash(WORD block *M, WORD *H){
     
     // Section 6.2.2
@@ -61,7 +62,7 @@ void nexthash(WORD block *M, WORD *H){
     int t;
 
     for (t = 0; t < 16; t++){
-        W[t] = M->threetwo[t];
+        W[t] = M[t];
     }
 
     for (t = 16; t < 64; t++){
@@ -73,13 +74,13 @@ void nexthash(WORD block *M, WORD *H){
 
     for (t = 0; t < 64; t++){
         T1 = h + Sig1(e) + Ch(e, f, g) + K[t] + W[t];
-        T2 = Sig1(e) + Maj(a, b, c);
+        T2 = Sig0(e) + Maj(a, b, c);
         h = g; g = f; f = e; e = d + T1;
         d = c; c = b; b = a; a = T1 + T2;
-
-        H[0] = a + H[0]; H[1] = b + H[1]; H[2] = c + H[2]; H[3] = d + H[3];
-        H[4] = e + H[4]; H[5] = f + H[5]; H[6] = g + H[6]; H[7] = h + H[7]; 
     }
+    
+    H[0] = a + H[0]; H[1] = b + H[1]; H[2] = c + H[2]; H[3] = d + H[3];
+    H[4] = e + H[4]; H[5] = f + H[5]; H[6] = g + H[6]; H[7] = h + H[7]; 
 }
 
 int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status ){
@@ -113,7 +114,7 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
             M->eight[i] = 0;
         }
 
-        M.sixfour[7] = *nobits;
+        M->sixfour[7] = *nobits;
         *status = FINISH;
         return 1;
     }
