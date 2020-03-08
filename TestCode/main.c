@@ -24,6 +24,11 @@ uint32_t ROTL(uint32_t x, int n);
 // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
 const uint32_t digest[] = { 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476 };
 
+// Pad0 = get to eof, don't have enough space to do all padding. Pad rest with 0's
+// pad1 = read to end block perfectly, E.g 512 bits + padding. 1 bit + 450 0 bits.
+// Finish = Done all padding.
+enum flag {READ, PAD0, FINISH};
+
 // union block that occupies the same address space and can take the form of a 64, 32, or 8 bit integer.
 union block{
   uint64_t sixfour[8];
