@@ -10,10 +10,13 @@
 #include<conio.h>
 #include<stdint.h>
 
+// Preprocessor
+#define WORD uint32_t
+
 // These 32 bit registers are initialized to the following values in hexadecimal, low-order bytes first.
 //const uint32_t digest[] = { 0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210 };
 // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
-const uint32_t digest[] = { 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476 };
+const uint32_t initialValues[] = { 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476 };
 
 // Pad0 = get to eof, don't have enough space to do all padding. Pad rest with 0's
 // pad1 = read to end block perfectly, E.g 512 bits + padding. 1 bit + 450 0 bits.
@@ -48,6 +51,25 @@ union block{
 
 // Push bits off to the left n places, however they are pushed in on the right again (loop around)
 #define ROTL((x << n) | (x >> (32 - n)))
+
+void nexthash(WORD *M){
+
+	// All steps to hash each 16 word block. 
+	// Adapted from documentation: https://tools.ietf.org/html/rfc1321
+    WORD W[64];
+    WORD a, b, c, d;
+    int i, j;
+
+    for (i = 0; i < 16; i++){
+        
+    }
+
+	// Assign initial values to temp variables in memory.
+	a = initialValues[0];
+    b = initialValues[1];
+    c = initialValues[2];
+    d = initialValues[3];
+}
 
 // PAD the message
 int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status ){
