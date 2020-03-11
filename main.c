@@ -71,6 +71,66 @@ uint32_t ROTL(uint32_t x, int n){
     return (x << n) | (x >> (32 - n));
 }
 
+// PAD the message
+int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status ){
+    int i;
+
+    // Replace with switch.
+    if (*status = FINISH)
+        return 0;
+
+    if (*status = PAD0) {
+        // Sets all bits to 0.
+        // Take away 8byte int (64 - 8 = 56)
+        for (i = 1; i < 56; i++){
+            M->eight[i] = 0;  
+        }
+
+        M->sixfour[7] = bswap_64(*nobits);
+        *status = FINISH;
+        return 1;
+    }
+
+    // Read 1 byte 64 times.
+    size_t nobytesread = fread(M->eight, 1, 64, infile);
+    if (nobytesread == 64) {
+        for (i = 0; i < 16; i++){
+            M->threetwo[i] = bswap_32(M->threetwo[i]);
+        }
+
+        return 1;
+    }
+
+    // If we can fit all padding in last block in last block.
+    if (nobytesread < 56){
+        // Add 1 bit to the start.
+        M->eight[nobytesread] = 0x80;
+        for (i = nobytesread + 1; i < 56; i++){
+            M->eight[i] = 0;
+        }
+        for (int i = 0; i < 14; i++){
+            M->threetwo[i] = bswap_32(M->threetwo[i]);
+        }
+
+        M->sixfour[7] = bswap_64(*nobits);
+        *status = FINISH;
+        return 1;
+    }
+
+    // Read at least 56 bits but less than 64, so pad with 0's
+    // Otherwise we have read between 56 (incl) and 64 (excl) bytes.
+    M->eight[nobytesread] = 0x80;
+    for (i = nobytesread + 1; i < 64; i++){
+        M->eight[i] = 0; 
+    }
+    for (int i = 0; i < 16; i++){
+        M->threetwo[i] = bswap_32(M->threetwo[i]);
+    }
+    *status = PAD0;
+
+    return 1;
+}
+
 void menuSystem(unsigned int *userOption)
 {
 	unsigned int userOptionCopy = 0;
@@ -123,47 +183,83 @@ char readFile()
 
 void main()
 {
-	unsigned int userOption = 0;
+	// Expect and open a single filename.
+    if (argc != 2){
+        printf("Error: expected single filename as argument.");
+        return 1;
+    }
+    
+    FILE *infile = fopen(argv[1], "rb");
+    if(!infile){
+        printf("Error: couldn't open file %s. \n", argv[1]);
+        return 1;
+    }   
 
-	char userString[100] = "";
-	char fileString[200] = "";
+    // Test wheter were on little or big endian machine.
 
-	int i, j;
+    // The current padded message block.
+    union block M;
+    uint64_t nobits = 0;
+    enum flag status = READ;
 
-	printf("MD5 Hash Algorithm\n");
-	printf("===============\n");
+    // Read through all the padded message blocks.
+    while (nextblock(&M, infile, &nobits, &status)){
+      // Calculate the next hash value.
+      // Pass memory address of M.
+      //nexthash(M.threetwo, H);
+    }
 
-	//allow the user to enter a selection from the menu (intitial read)
-	menuSystem(&userOption);
+    for(int i = 0; i < 8; i++){
+      printf("%02" PRIx32, H[i]);
+	}
+    printf("\n");
 
-	// main while loop of program until 0 is encountered
-	while (userOption != 0)
-	{
-		//switch based on the user input
-		switch (userOption)
-		{
-		case 1:
-			printf("\nPlease enter the string you would like to hash: ");
-			scanf("%s", userString);
+    fclose(infile);
 
-			printf("%s", userString);
+    return 0;
 
-			break;
-		case 2:
-			strcpy(fileString, readFile());
+	// == MENU CODE == 
+	// unsigned int userOption = 0;
 
-			if (fileString != "") {
-				printf("%s", fileString);
-			}
-			else {
-				printf("\nError loading file, please try again.");
-			}
-			break;
-		default:
-			printf("Invalid option\n");
-		}
+	// char userString[100] = "";
+	// char fileString[200] = "";
 
-		//subsequent Read
-		menuSystem(&userOption);
-	} //while
+	// int i, j;
+
+	// printf("MD5 Hash Algorithm\n");
+	// printf("===============\n");
+
+	// //allow the user to enter a selection from the menu (intitial read)
+	// menuSystem(&userOption);
+
+	// // main while loop of program until 0 is encountered
+	// while (userOption != 0)
+	// {
+	// 	//switch based on the user input
+	// 	switch (userOption)
+	// 	{
+	// 	case 1:
+	// 		printf("\nPlease enter the string you would like to hash: ");
+	// 		scanf("%s", userString);
+
+	// 		printf("%s", userString);
+
+	// 		break;
+	// 	case 2:
+	// 		strcpy(fileString, readFile());
+
+	// 		if (fileString != "") {
+	// 			printf("%s", fileString);
+	// 		}
+	// 		else {
+	// 			printf("\nError loading file, please try again.");
+	// 		}
+	// 		break;
+	// 	default:
+	// 		printf("Invalid option\n");
+	// 	}
+
+	// 	//subsequent Read
+	// 	menuSystem(&userOption);
+	// } //while
 }
