@@ -10,15 +10,6 @@
 #include<conio.h>
 #include<stdint.h>
 
-// Function Definition
-void menuSystem(unsigned int *userOption);
-char readFile();
-uint32_t f(uint32_t x, uint32_t y , uint32_t, z);
-uint32_t g(uint32_t x, uint32_t y , uint32_t, z);
-uint32_t h(uint32_t x, uint32_t y , uint32_t, z);
-uint32_t i(uint32_t x, uint32_t y , uint32_t, z);
-uint32_t ROTL(uint32_t x, int n);
-
 // These 32 bit registers are initialized to the following values in hexadecimal, low-order bytes first.
 //const uint32_t digest[] = { 0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210 };
 // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
@@ -45,31 +36,18 @@ union block{
 // ~ (bitwise NOT(X))
 
 // four auxiliary functions (f, g, h and i) that each take as input three 32-bit words and produce as output one 32-bit word.
+// Inline to descrease overhead and increase speed.
 // F(X,Y,Z) = XY v not(X) Z
 // G(X,Y,Z) = XZ v Y not(Z)
 // H(X,Y,Z) = X xor Y xor Z
 // I(X,Y,Z) = Y xor (X v not(Z))
-
-uint32_t f(uint32_t x, uint32_t y , uint32_t, z){
-    return (x & y) | (~x & z);
-}
-
-uint32_t g(uint32_t x, uint32_t y , uint32_t, z){
-    return (x & z) | (y & ~z);
-}
-
-uint32_t h(uint32_t x, uint32_t y , uint32_t, z){
-    return x ^ y ^ z;
-}
-
-uint32_t i(uint32_t x, uint32_t y , uint32_t, z){
-    return y ^ (x |~ z);
-}
+#define F(x, y, z) ((x & y) | (~x & z)) 
+#define G(x, y, z) ((x & z) | (y & ~z)) 
+#define H(x, y, z) (x ^ y ^ z) 
+#define I(x, y, z) (y ^ (x | ~z)) 
 
 // Push bits off to the left n places, however they are pushed in on the right again (loop around)
-uint32_t ROTL(uint32_t x, int n){
-    return (x << n) | (x >> (32 - n));
-}
+#define ROTL((x << n) | (x >> (32 - n)))
 
 // PAD the message
 int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status ){
