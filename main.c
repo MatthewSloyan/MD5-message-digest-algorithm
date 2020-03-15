@@ -10,7 +10,7 @@
 #include<conio.h>
 #include<stdint.h>
 
-// Preprocessor
+// Preprocessor variables.
 #define WORD uint32_t
 
 // Predifined hash values, defined in 
@@ -46,12 +46,9 @@ union block{
 };
 
 // Bitwise operators in c
-// & (bitwise AND)
-// | (bitwise OR - v)
-// ^ (bitwise XOR)
-// << (left shift) 
-// >> (right shift) 
-// ~ (bitwise NOT(X))
+// & (bitwise AND)   | (bitwise OR - v)
+// ^ (bitwise XOR)   << (left shift) 
+// >> (right shift)  ~ (bitwise NOT(X))
 
 // four auxiliary functions (f, g, h and i) that each take as input three 32-bit words and produce as output one 32-bit word.
 // Inline to descrease overhead and increase speed.
@@ -67,8 +64,15 @@ union block{
 // Push bits off to the left n places, however they are pushed in on the right again (loop around)
 #define ROTL((x << n) | (x >> (32 - n)))
 
-void nexthash(WORD *M, WORD *H){
+// Bit shifting functions used in rounds 1-4
+// Code adapted from: https://www.slideshare.net/sourav777/sourav-md5
+// Also cleaned up by following steps from: https://tools.ietf.org/html/rfc1321
+#define FF(a,b,c,d,m,s,t) { a += F(b,c,d) + m + t; a = b + ROTL(a,s); }
+#define GG(a,b,c,d,m,s,t) { a += G(b,c,d) + m + t; a = b + ROTL(a,s); }
+#define HH(a,b,c,d,m,s,t) { a += H(b,c,d) + m + t; a = b + ROTL(a,s); }
+#define II(a,b,c,d,m,s,t) { a += I(b,c,d) + m + t; a = b + ROTL(a,s); }
 
+void nexthash(WORD *M, WORD *H){
 	// All steps to hash each 16 word block. 
 	// Adapted from documentation: https://tools.ietf.org/html/rfc1321
     WORD a, b, c, d;
@@ -219,7 +223,7 @@ void main()
     // These 32 bit registers are initialized to the following values in hexadecimal, low-order bytes first.
     //const uint32_t digest[] = { 0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210 };
     // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
-    uint32_t H[] = { 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476 };
+    WORD H[] = { 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476 };
 
     // Read through all the padded message blocks.
     while (nextblock(&M, infile, &nobits, &status)){
