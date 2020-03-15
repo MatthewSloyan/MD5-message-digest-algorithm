@@ -13,7 +13,7 @@
 // Preprocessor variables.
 #define WORD uint32_t
 
-// Predifined hash values, defined in 
+// Predifined hash values, defined in: https://tools.ietf.org/html/rfc1321
 const uint32_t T[64] = {
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
     0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
@@ -307,7 +307,15 @@ void main()
       nexthash(M.threetwo, H);
     }
 
-    for(int i = 0; i < 8; i++){
+    for(int i = 0; i< 4; i++)
+    {
+      // Display result in little endian.
+      // Code adapted from: https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
+      printf("%02x%02x%02x%02x", (H[i] >> 0 )&0x000000ff, (H[i] >> 8)&0x000000ff, 
+                                 (H[i] >> 16)&0x000000ff, (H[i] >> 24)&0x000000ff);
+    }
+
+    for(int i = 0; i < 4; i++){
       printf("%02" PRIx32, H[i]);
 	}
     printf("\n");
