@@ -74,19 +74,53 @@ union block{
 
 void nexthash(WORD *M, WORD *H){
 	// All steps to hash each 16 word block. 
-	// Adapted from documentation: https://tools.ietf.org/html/rfc1321
     WORD a, b, c, d;
-    int i, j;
-
-    for (i = 0; i < 16; i++){
-        
-    }
 
 	// Assign initial values to temp variables in memory.
 	a = H[0];
     b = H[1];
     c = H[2];
     d = H[3];
+
+    // In time I will make this into a loop to cut down loc.
+    // Code adapted from: https://github.com/Souravpunoriyar/md5-in-c
+    // Also following steps from: https://tools.ietf.org/html/rfc1321
+    // == Round 1 ==
+    FF(a,b,c,d, M->thirtytwo[0],  7,0xd76aa478);
+    FF(d,a,b,c, M->thirtytwo[1], 12,0xe8c7b756);
+    FF(c,d,a,b, M->thirtytwo[2], 17,0x242070db);
+    FF(b,c,d,a, M->thirtytwo[3], 22,0xc1bdceee);
+    FF(a,b,c,d, M->thirtytwo[4],  7,0xf57c0faf);
+    FF(d,a,b,c, M->thirtytwo[5], 12,0x4787c62a);
+    FF(c,d,a,b, M->thirtytwo[6], 17,0xa8304613);
+    FF(b,c,d,a, M->thirtytwo[7], 22,0xfd469501);
+    FF(a,b,c,d, M->thirtytwo[8],  7,0x698098d8);
+    FF(d,a,b,c, M->thirtytwo[9], 12,0x8b44f7af);
+    FF(c,d,a,b, M->thirtytwo[10],17,0xffff5bb1);
+    FF(b,c,d,a, M->thirtytwo[11],22,0x895cd7be);
+    FF(a,b,c,d, M->thirtytwo[12], 7,0x6b901122);
+    FF(d,a,b,c, M->thirtytwo[13],12,0xfd987193);
+    FF(c,d,a,b, M->thirtytwo[14],17,0xa679438e);
+    FF(b,c,d,a, M->thirtytwo[15],22,0x49b40821);
+
+    // == Round 2 ==
+    GG(a,b,c,d, M->thirtytwo[1],  5,0xf61e2562);
+    GG(d,a,b,c, M->thirtytwo[6],  9,0xc040b340);
+    GG(c,d,a,b, M->thirtytwo[11],14,0x265e5a51);
+    GG(b,c,d,a, M->thirtytwo[0], 20,0xe9b6c7aa);
+    GG(a,b,c,d, M->thirtytwo[5],  5,0xd62f105d);
+    GG(d,a,b,c, M->thirtytwo[10], 9,0x02441453);
+    GG(c,d,a,b, M->thirtytwo[15],14,0xd8a1e681);
+    GG(b,c,d,a, M->thirtytwo[4], 20,0xe7d3fbc8);
+    GG(a,b,c,d, M->thirtytwo[9],  5,0x21e1cde6);
+    GG(d,a,b,c, M->thirtytwo[14], 9,0xc33707d6);
+    GG(c,d,a,b, M->thirtytwo[3], 14,0xf4d50d87);
+    GG(b,c,d,a, M->thirtytwo[8], 20,0x455a14ed);
+    GG(a,b,c,d, M->thirtytwo[13], 5,0xa9e3e905);
+    GG(d,a,b,c, M->thirtytwo[2],  9,0xfcefa3f8);
+    GG(c,d,a,b, M->thirtytwo[7], 14,0x676f02d9);
+    GG(b,c,d,a, M->thirtytwo[12],20,0x8d2a4c8a);
+
 }
 
 // PAD the message
