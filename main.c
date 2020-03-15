@@ -121,6 +121,47 @@ void nexthash(WORD *M, WORD *H){
     GG(c,d,a,b, M->thirtytwo[7], 14,0x676f02d9);
     GG(b,c,d,a, M->thirtytwo[12],20,0x8d2a4c8a);
 
+    // == Round 3 ==
+    HH(a,b,c,d, M->thirtytwo[5],  4,0xfffa3942);
+    HH(d,a,b,c, M->thirtytwo[8], 11,0x8771f681);
+    HH(c,d,a,b, M->thirtytwo[11],16,0x6d9d6122);
+    HH(b,c,d,a, M->thirtytwo[14],23,0xfde5380c);
+    HH(a,b,c,d, M->thirtytwo[1],  4,0xa4beea44);
+    HH(d,a,b,c, M->thirtytwo[4], 11,0x4bdecfa9);
+    HH(c,d,a,b, M->thirtytwo[7], 16,0xf6bb4b60);
+    HH(b,c,d,a, M->thirtytwo[10],23,0xbebfbc70);
+    HH(a,b,c,d, M->thirtytwo[13], 4,0x289b7ec6);
+    HH(d,a,b,c, M->thirtytwo[0], 11,0xeaa127fa);
+    HH(c,d,a,b, M->thirtytwo[3], 16,0xd4ef3085);
+    HH(b,c,d,a, M->thirtytwo[6], 23,0x04881d05);
+    HH(a,b,c,d, M->thirtytwo[9],  4,0xd9d4d039);
+    HH(d,a,b,c, M->thirtytwo[12],11,0xe6db99e5);
+    HH(c,d,a,b, M->thirtytwo[15],16,0x1fa27cf8);
+    HH(b,c,d,a, M->thirtytwo[2], 23,0xc4ac5665);
+
+    // == Round 4 ==
+    II(a,b,c,d, M->thirtytwo[0],  6,0xf4292244);
+    II(d,a,b,c, M->thirtytwo[7], 10,0x432aff97);
+    II(c,d,a,b, M->thirtytwo[14],15,0xab9423a7);
+    II(b,c,d,a, M->thirtytwo[5], 21,0xfc93a039);
+    II(a,b,c,d, M->thirtytwo[12], 6,0x655b59c3);
+    II(d,a,b,c, M->thirtytwo[3], 10,0x8f0ccc92);
+    II(c,d,a,b, M->thirtytwo[10],15,0xffeff47d);
+    II(b,c,d,a, M->thirtytwo[1], 21,0x85845dd1);
+    II(a,b,c,d, M->thirtytwo[8],  6,0x6fa87e4f);
+    II(d,a,b,c, M->thirtytwo[15],10,0xfe2ce6e0);
+    II(c,d,a,b, M->thirtytwo[6], 15,0xa3014314);
+    II(b,c,d,a, M->thirtytwo[13],21,0x4e0811a1);
+    II(a,b,c,d, M->thirtytwo[4],  6,0xf7537e82);
+    II(d,a,b,c, M->thirtytwo[11],10,0xbd3af235);
+    II(c,d,a,b, M->thirtytwo[2], 15,0x2ad7d2bb);
+    II(b,c,d,a, M->thirtytwo[9], 21,0xeb86d391);
+
+    // Final step, add up all hash values.
+    H[0] += a;
+    H[1] += b;
+    H[2] += c;
+    H[3] += d;
 }
 
 // PAD the message
