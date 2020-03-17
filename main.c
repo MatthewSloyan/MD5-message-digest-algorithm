@@ -7,7 +7,6 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include<conio.h>
 #include<stdint.h>
 
 // Preprocessor variables.
@@ -40,8 +39,8 @@ enum flag {READ, PAD0, FINISH};
 
 // union block that occupies the same address space and can take the form of a 64, 32, or 8 bit integer.
 union block{
-  uint64_t sixfour[8];
-  uint32_t threetwo[16];
+  uint64_t sixtyfour[8];
+  uint32_t thirtytwo[16];
   uint8_t eight[64];
 };
 
@@ -62,7 +61,7 @@ union block{
 #define I(x, y, z) (y ^ (x | ~z)) 
 
 // Push bits off to the left n places, however they are pushed in on the right again (loop around)
-#define ROTL((x << n) | (x >> (32 - n)))
+#define ROTL(x, n) ((x << n) | (x >> (32 - n)))
 
 // Bit shifting functions used in rounds 1-4
 // Code adapted from: https://www.slideshare.net/sourav777/sourav-md5
@@ -72,7 +71,7 @@ union block{
 #define HH(a,b,c,d,m,s,t) { a += H(b,c,d) + m + t; a = b + ROTL(a,s); }
 #define II(a,b,c,d,m,s,t) { a += I(b,c,d) + m + t; a = b + ROTL(a,s); }
 
-void nexthash(WORD *M, WORD *H){
+void nexthash(union block *M, WORD *H){
 	// All steps to hash each 16 word block. 
     WORD a, b, c, d;
 
@@ -179,7 +178,7 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
             M->eight[i] = 0;  
         }
 
-        M->sixfour[7] = bswap_64(*nobits);
+        M->sixtyfour[7] = bswap_64(*nobits);
         *status = FINISH;
         return 1;
     }
@@ -188,7 +187,7 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
     size_t nobytesread = fread(M->eight, 1, 64, infile);
     if (nobytesread == 64) {
         for (i = 0; i < 16; i++){
-            M->threetwo[i] = bswap_32(M->threetwo[i]);
+            M->thirtytwo[i] = bswap_32(M->thirtytwo[i]);
         }
 
         return 1;
@@ -202,10 +201,10 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
             M->eight[i] = 0;
         }
         for (int i = 0; i < 14; i++){
-            M->threetwo[i] = bswap_32(M->threetwo[i]);
+            M->thirtytwo[i] = bswap_32(M->thirtytwo[i]);
         }
 
-        M->sixfour[7] = bswap_64(*nobits);
+        M->sixtyfour[7] = bswap_64(*nobits);
         *status = FINISH;
         return 1;
     }
@@ -217,7 +216,7 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
         M->eight[i] = 0; 
     }
     for (int i = 0; i < 16; i++){
-        M->threetwo[i] = bswap_32(M->threetwo[i]);
+        M->thirtytwo[i] = bswap_32(M->thirtytwo[i]);
     }
     *status = PAD0;
 
@@ -274,7 +273,7 @@ char readFile()
 	return fileString;
 }
 
-void main()
+int main(int argc, char *argv[])
 {
 	// Expect and open a single filename.
     if (argc != 2){
@@ -304,7 +303,7 @@ void main()
     while (nextblock(&M, infile, &nobits, &status)){
       // Calculate the next hash value.
       // Pass memory address of M.
-      nexthash(M.threetwo, H);
+      nexthash(&M, H);
     }
 
     for(int i = 0; i< 4; i++)
@@ -315,9 +314,9 @@ void main()
                                  (H[i] >> 16)&0x000000ff, (H[i] >> 24)&0x000000ff);
     }
 
-    for(int i = 0; i < 4; i++){
-      printf("%02" PRIx32, H[i]);
-	}
+    //for(int i = 0; i < 4; i++){
+     // printf("%02" PRIx32, H[i]);
+	//}
     printf("\n");
 
     fclose(infile);

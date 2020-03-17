@@ -5,6 +5,7 @@ refactor
 unions
 sha256
 endian
+main
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
