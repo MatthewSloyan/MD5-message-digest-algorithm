@@ -75,14 +75,19 @@ union block{
 
 void nexthash(WORD *M, WORD *H){
 	// All steps to hash each 16 word block. 
-    int i;
-    WORD W[64];
+    unsigned int i, j;
+    WORD W[16];
     WORD a, b, c, d;
 
-    for (i = 0; i < 16; i++){ 
-        W[i] = M[i];
-    }
+    // Copy buffer into new variable and swap from little to big endian.
+    //for (i=0, j=0; i < 16; ++i, j += 4) {
+      // W[i] = (M[j]) + (M[j+1] << 8) + (M[j+2] << 16) + (M[j+3] << 24);
+   // }
 
+   for (i = 0; i < 16; i++){
+       W[i] = M[i];
+   }
+   
 	// Assign initial values to temp variables in memory.
 	a = H[0];
     b = H[1];
@@ -169,13 +174,17 @@ void nexthash(WORD *M, WORD *H){
     H[1] += b;
     H[2] += c;
     H[3] += d;
+   //a += H[0];
+  // b += H[1];
+   //c += H[2];
+  // d += H[3];
 }
 
 // PAD the message
 int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status ){
     int i;
     size_t nobytesread;
-    
+
     switch(*status){
         case FINISH:
             return 0;
@@ -186,7 +195,7 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
                 M->eight[i] = 0x00;
             }
             
-            M->sixtyfour[7] = bswap_64(*nobits);
+            M->sixtyfour[7] = *nobits;
             *status = FINISH;
             break;
         default:
@@ -202,7 +211,7 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
                     M->eight[i] = 0x00;
                 }
 
-                M->sixtyfour[7] = bswap_64(*nobits);
+                M->sixtyfour[7] = *nobits;
                 *status = FINISH;
             } 
             else if (nobytesread < 64) {
@@ -218,9 +227,9 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
     }
 
     // Convert to host endianess, word-size-wise.
-    for (i = 0; i < 16; i++){
-        M->thirtytwo[i] = bswap_32(M->thirtytwo[i]);
-    }
+    //for (i = 0; i < 16; i++){
+        //M->thirtytwo[i] = bswap_32(M->thirtytwo[i]);
+    //}
 
     return 1;
 }
