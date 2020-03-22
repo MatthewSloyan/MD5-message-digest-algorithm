@@ -8,6 +8,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include<stdint.h>
+#include<inttypes.h>
 #include<byteswap.h>
 
 // Preprocessor variables.
@@ -75,11 +76,11 @@ union block{
 void nexthash(WORD *M, WORD *H){
 	// All steps to hash each 16 word block. 
     int i;
-    WORD W[64]
+    WORD W[64];
     WORD a, b, c, d;
 
     for (i = 0; i < 16; i++){ 
-        W[t] = M[t];
+        W[i] = M[i];
     }
 
 	// Assign initial values to temp variables in memory.
@@ -185,7 +186,7 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
                 M->eight[i] = 0x00;
             }
             
-            M->sixfour[7] = bswap_64(*nobits);
+            M->sixtyfour[7] = bswap_64(*nobits);
             *status = FINISH;
             break;
         default:
@@ -201,7 +202,7 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
                     M->eight[i] = 0x00;
                 }
 
-                M->sixfour[7] = bswap_64(*nobits);
+                M->sixtyfour[7] = bswap_64(*nobits);
                 *status = FINISH;
             } 
             else if (nobytesread < 64) {
