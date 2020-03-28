@@ -14,7 +14,15 @@
 // Preprocessor variables.
 #define WORD uint32_t
 
-// Predifined hash values, defined in: https://tools.ietf.org/html/rfc1321
+// Predifined values for each round of hashing, as definined in section 3.4.
+const uint32_t X[64] = {
+    7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
+    5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20,
+    4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
+    6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
+};
+
+// Predifined hash values, defined in section 3.4: https://tools.ietf.org/html/rfc1321
 const uint32_t T[64] = {
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
     0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
@@ -79,11 +87,6 @@ void nexthash(WORD *M, WORD *H){
     WORD W[16];
     WORD a, b, c, d;
 
-    // Copy buffer into new variable and swap from little to big endian.
-    //for (i=0, j=0; i < 16; ++i, j += 4) {
-      // W[i] = (M[j]) + (M[j+1] << 8) + (M[j+2] << 16) + (M[j+3] << 24);
-   // }
-
    for (i = 0; i < 16; i++){
        W[i] = M[i];
    }
@@ -98,86 +101,82 @@ void nexthash(WORD *M, WORD *H){
     // Code adapted from: https://github.com/Souravpunoriyar/md5-in-c
     // Also following steps from: https://tools.ietf.org/html/rfc1321
     // == Round 1 ==
-    FF(a,b,c,d, W[0],  7,0xd76aa478);
-    FF(d,a,b,c, W[1], 12,0xe8c7b756);
-    FF(c,d,a,b, W[2], 17,0x242070db);
-    FF(b,c,d,a, W[3], 22,0xc1bdceee);
-    FF(a,b,c,d, W[4],  7,0xf57c0faf);
-    FF(d,a,b,c, W[5], 12,0x4787c62a);
-    FF(c,d,a,b, W[6], 17,0xa8304613);
-    FF(b,c,d,a, W[7], 22,0xfd469501);
-    FF(a,b,c,d, W[8],  7,0x698098d8);
-    FF(d,a,b,c, W[9], 12,0x8b44f7af);
-    FF(c,d,a,b, W[10],17,0xffff5bb1);
-    FF(b,c,d,a, W[11],22,0x895cd7be);
-    FF(a,b,c,d, W[12], 7,0x6b901122);
-    FF(d,a,b,c, W[13],12,0xfd987193);
-    FF(c,d,a,b, W[14],17,0xa679438e);
-    FF(b,c,d,a, W[15],22,0x49b40821);
+    FF(a,b,c,d, W[0], X[0], 0xd76aa478);
+    FF(d,a,b,c, W[1], X[1], 0xe8c7b756);
+    FF(c,d,a,b, W[2], X[2], 0x242070db);
+    FF(b,c,d,a, W[3], X[3], 0xc1bdceee);
+    FF(a,b,c,d, W[4], X[4], 0xf57c0faf);
+    FF(d,a,b,c, W[5], X[5], 0x4787c62a);
+    FF(c,d,a,b, W[6], X[6], 0xa8304613);
+    FF(b,c,d,a, W[7], X[7], 0xfd469501);
+    FF(a,b,c,d, W[8], X[8], 0x698098d8);
+    FF(d,a,b,c, W[9], X[9], 0x8b44f7af);
+    FF(c,d,a,b, W[10],X[10],0xffff5bb1);
+    FF(b,c,d,a, W[11],X[11],0x895cd7be);
+    FF(a,b,c,d, W[12],X[12],0x6b901122);
+    FF(d,a,b,c, W[13],X[13],0xfd987193);
+    FF(c,d,a,b, W[14],X[14],0xa679438e);
+    FF(b,c,d,a, W[15],X[15],0x49b40821);
 
     // == Round 2 ==
-    GG(a,b,c,d, W[1],  5,0xf61e2562);
-    GG(d,a,b,c, W[6],  9,0xc040b340);
-    GG(c,d,a,b, W[11],14,0x265e5a51);
-    GG(b,c,d,a, W[0], 20,0xe9b6c7aa);
-    GG(a,b,c,d, W[5],  5,0xd62f105d);
-    GG(d,a,b,c, W[10], 9,0x02441453);
-    GG(c,d,a,b, W[15],14,0xd8a1e681);
-    GG(b,c,d,a, W[4], 20,0xe7d3fbc8);
-    GG(a,b,c,d, W[9],  5,0x21e1cde6);
-    GG(d,a,b,c, W[14], 9,0xc33707d6);
-    GG(c,d,a,b, W[3], 14,0xf4d50d87);
-    GG(b,c,d,a, W[8], 20,0x455a14ed);
-    GG(a,b,c,d, W[13], 5,0xa9e3e905);
-    GG(d,a,b,c, W[2],  9,0xfcefa3f8);
-    GG(c,d,a,b, W[7], 14,0x676f02d9);
-    GG(b,c,d,a, W[12],20,0x8d2a4c8a);
+    GG(a,b,c,d, W[1], X[16],0xf61e2562);
+    GG(d,a,b,c, W[6], X[17],0xc040b340);
+    GG(c,d,a,b, W[11],X[18],0x265e5a51);
+    GG(b,c,d,a, W[0], X[19],0xe9b6c7aa);
+    GG(a,b,c,d, W[5], X[20],0xd62f105d);
+    GG(d,a,b,c, W[10],X[21],0x02441453);
+    GG(c,d,a,b, W[15],X[22],0xd8a1e681);
+    GG(b,c,d,a, W[4], X[23],0xe7d3fbc8);
+    GG(a,b,c,d, W[9], X[24],0x21e1cde6);
+    GG(d,a,b,c, W[14],X[25],0xc33707d6);
+    GG(c,d,a,b, W[3], X[26],0xf4d50d87);
+    GG(b,c,d,a, W[8], X[27],0x455a14ed);
+    GG(a,b,c,d, W[13],X[28],0xa9e3e905);
+    GG(d,a,b,c, W[2], X[29],0xfcefa3f8);
+    GG(c,d,a,b, W[7], X[30],0x676f02d9);
+    GG(b,c,d,a, W[12],X[31],0x8d2a4c8a);
 
     // == Round 3 ==
-    HH(a,b,c,d, W[5],  4,0xfffa3942);
-    HH(d,a,b,c, W[8], 11,0x8771f681);
-    HH(c,d,a,b, W[11],16,0x6d9d6122);
-    HH(b,c,d,a, W[14],23,0xfde5380c);
-    HH(a,b,c,d, W[1],  4,0xa4beea44);
-    HH(d,a,b,c, W[4], 11,0x4bdecfa9);
-    HH(c,d,a,b, W[7], 16,0xf6bb4b60);
-    HH(b,c,d,a, W[10],23,0xbebfbc70);
-    HH(a,b,c,d, W[13], 4,0x289b7ec6);
-    HH(d,a,b,c, W[0], 11,0xeaa127fa);
-    HH(c,d,a,b, W[3], 16,0xd4ef3085);
-    HH(b,c,d,a, W[6], 23,0x04881d05);
-    HH(a,b,c,d, W[9],  4,0xd9d4d039);
-    HH(d,a,b,c, W[12],11,0xe6db99e5);
-    HH(c,d,a,b, W[15],16,0x1fa27cf8);
-    HH(b,c,d,a, W[2], 23,0xc4ac5665);
+    HH(a,b,c,d, W[5], X[32],0xfffa3942);
+    HH(d,a,b,c, W[8], X[33],0x8771f681);
+    HH(c,d,a,b, W[11],X[34],0x6d9d6122);
+    HH(b,c,d,a, W[14],X[35],0xfde5380c);
+    HH(a,b,c,d, W[1], X[36],0xa4beea44);
+    HH(d,a,b,c, W[4], X[37],0x4bdecfa9);
+    HH(c,d,a,b, W[7], X[38],0xf6bb4b60);
+    HH(b,c,d,a, W[10],X[39],0xbebfbc70);
+    HH(a,b,c,d, W[13],X[40],0x289b7ec6);
+    HH(d,a,b,c, W[0], X[41],0xeaa127fa);
+    HH(c,d,a,b, W[3], X[42],0xd4ef3085);
+    HH(b,c,d,a, W[6], X[43],0x04881d05);
+    HH(a,b,c,d, W[9], X[44],0xd9d4d039);
+    HH(d,a,b,c, W[12],X[45],0xe6db99e5);
+    HH(c,d,a,b, W[15],X[46],0x1fa27cf8);
+    HH(b,c,d,a, W[2], X[47],0xc4ac5665);
 
     // == Round 4 ==
-    II(a,b,c,d, W[0],  6,0xf4292244);
-    II(d,a,b,c, W[7], 10,0x432aff97);
-    II(c,d,a,b, W[14],15,0xab9423a7);
-    II(b,c,d,a, W[5], 21,0xfc93a039);
-    II(a,b,c,d, W[12], 6,0x655b59c3);
-    II(d,a,b,c, W[3], 10,0x8f0ccc92);
-    II(c,d,a,b, W[10],15,0xffeff47d);
-    II(b,c,d,a, W[1], 21,0x85845dd1);
-    II(a,b,c,d, W[8],  6,0x6fa87e4f);
-    II(d,a,b,c, W[15],10,0xfe2ce6e0);
-    II(c,d,a,b, W[6], 15,0xa3014314);
-    II(b,c,d,a, W[13],21,0x4e0811a1);
-    II(a,b,c,d, W[4],  6,0xf7537e82);
-    II(d,a,b,c, W[11],10,0xbd3af235);
-    II(c,d,a,b, W[2], 15,0x2ad7d2bb);
-    II(b,c,d,a, W[9], 21,0xeb86d391);
+    II(a,b,c,d, W[0], X[48],0xf4292244);
+    II(d,a,b,c, W[7], X[49],0x432aff97);
+    II(c,d,a,b, W[14],X[50],0xab9423a7);
+    II(b,c,d,a, W[5], X[51],0xfc93a039);
+    II(a,b,c,d, W[12],X[52],0x655b59c3);
+    II(d,a,b,c, W[3], X[53],0x8f0ccc92);
+    II(c,d,a,b, W[10],X[54],0xffeff47d);
+    II(b,c,d,a, W[1], X[55],0x85845dd1);
+    II(a,b,c,d, W[8], X[56],0x6fa87e4f);
+    II(d,a,b,c, W[15],X[57],0xfe2ce6e0);
+    II(c,d,a,b, W[6], X[58],0xa3014314);
+    II(b,c,d,a, W[13],X[59],0x4e0811a1);
+    II(a,b,c,d, W[4], X[60],0xf7537e82);
+    II(d,a,b,c, W[11],X[61],0xbd3af235);
+    II(c,d,a,b, W[2], X[62],0x2ad7d2bb);
+    II(b,c,d,a, W[9], X[63],0xeb86d391);
 
     // Final step, add up all hash values.
     H[0] += a;
     H[1] += b;
     H[2] += c;
     H[3] += d;
-   //a += H[0];
-  // b += H[1];
-   //c += H[2];
-  // d += H[3];
 }
 
 // PAD the message
@@ -225,11 +224,6 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
                 *status = PAD0;
             }
     }
-
-    // Convert to host endianess, word-size-wise.
-    //for (i = 0; i < 16; i++){
-        //M->thirtytwo[i] = bswap_32(M->thirtytwo[i]);
-    //}
 
     return 1;
 }
