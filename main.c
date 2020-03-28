@@ -47,6 +47,9 @@ const uint32_t T[64] = {
 // Finish = Done all padding.
 enum flag {READ, PAD0, FINISH};
 
+// 
+enum input {FILETYPE, STRINGTYPE};
+
 // union block that occupies the same address space and can take the form of a 64, 32, or 8 bit integer.
 union block{
   uint64_t sixtyfour[8];
@@ -82,17 +85,17 @@ union block{
 #define II(a,b,c,d,m,s,t) { a += I(b,c,d) + m + t; a = b + ROTL(a,s); }
 
 void nexthash(WORD *M, WORD *H){
-	// All steps to hash each 16 word block. 
+	  // All steps to hash each 16 word block. 
     unsigned int i, j;
     WORD W[16];
     WORD a, b, c, d;
 
-   for (i = 0; i < 16; i++){
+    for (i = 0; i < 16; i++){
        W[i] = M[i];
-   }
+    }
    
-	// Assign initial values to temp variables in memory.
-	a = H[0];
+	  // Assign initial values to temp variables in memory.
+	  a = H[0];
     b = H[1];
     c = H[2];
     d = H[3];
@@ -180,7 +183,7 @@ void nexthash(WORD *M, WORD *H){
 }
 
 // PAD the message
-int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status ){
+int nextblock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum flag *status, enum input type){
     int i;
     size_t nobytesread;
 
@@ -197,9 +200,19 @@ int nextblock(union block *M, FILE *infile, uint64_t *nobits, enum flag *status 
             M->sixtyfour[7] = *nobits;
             *status = FINISH;
             break;
-        default:
-            // Try to read 64 bytes from the file.
-            nobytesread = fread(M->eight, 1, 64, infile);
+        default: 
+            // Check
+            if (type  == FILETYPE){
+                // Try to read 64 bytes from the file.
+                nobytesread = fread(M->eight, 1, 64, infile);
+            }
+            else {
+                M->eight = (uint8_t)str;
+                nobytesread = strlen(str);
+            }
+
+            printf("\nTest");
+
             *nobits += (8ULL * ((uint64_t) nobytesread));
             
             if (nobytesread < 56) {
@@ -298,6 +311,12 @@ int main(int argc, char *argv[])
     union block M;
     uint64_t nobits = 0;
     enum flag status = READ;
+    enum input type = STRINGTYPE;
+    char str[] = "message digest";
+    //size_t nobytesread;
+
+    // Try to read 64 bytes from the file.
+    //nobytesread = fread(&M.eight, 1, 64, infile);
 
     // These 32 bit registers are initialized to the following values in hexadecimal, low-order bytes first.
     //const uint32_t digest[] = { 0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210 };
@@ -305,7 +324,7 @@ int main(int argc, char *argv[])
     WORD H[] = { 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476 };
 
     // Read through all the padded message blocks.
-    while (nextblock(&M, infile, &nobits, &status)){
+    while (nextblock(&M, infile, str, &nobits, &status, type)){
       // Calculate the next hash value.
       // Pass memory address of M.
       nexthash(M.thirtytwo, H);
