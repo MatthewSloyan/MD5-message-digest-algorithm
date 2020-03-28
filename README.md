@@ -74,7 +74,11 @@ This week I completed and tested the Sha256 algorithm coded from the videos supp
 
 For the MD5 algorithm I added a rotate bits function (ROTL) and union block this week. ROTL shifts the bits n number of times to the left, this loops around so bits that are push off to the left are pushed in on the right again.
 
+#### Week of 8-3-20 to 15-3-20
+This week I continued implementing the MD5 algorithm. I started by refactoring main method to allow parameter file reading so when you “run ./main empty” it reads in the empty file in the directory. This will speed up testing time rather than having to enter the file path in the UI which I developed earlier. However, I will still use this feature in the final build along with the ability to input your own message to hash. I also set up the main function to include a loop to run through the input block by block until it is padded. With this loop I created a separate padding method which takes influence from the sha256 padding, I have refactored it however with my own implementation and added a switch statement to tidy the code. With this implemented and fully tested to ensure correctness I began working on the steps defined in section 3.4 of the [MD5 Documentation](https://tools.ietf.org/html/rfc1321) to add the hashing. Included in this section is 64 steps which all have a formula for each round. E.g. a = b + ((a + F(b,c,d) + X[k] + T[i]) <<< s). I added each step according to the documentation, but the code is quite long and from initial thoughts it seems a loop could be used to cut down this, which is something I will look at later. Another improvement I made was making the auxiliary functions inline, so the overhead is decreased especially as these methods are called 64 times on each iteration. With this added the full system was implemented but from testing the results were incorrect so I needed to do some more debugging.
 
+#### Week of 15-3-20 to 22-3-20
+After some more testing I realised the problem was due to the byte swapping I was doing, I was using big endian initial hash values, but then swapping the byte order to little endian during the padding. From research of the documentation and example provided it seems that the MD5 hashing must be done in big endian. [(MD5 Documentation)](https://tools.ietf.org/html/rfc1321). With this removed the result was correct however it was in the wrong order, so I added a loop which I adapted from StackOverflow to swap the byte order to little endian at end of the process [(Swap to Little endian)](https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem). I will later add a check depending on the machine run on, but this now works on my machine which is little endian.
 
 #### Conclusion 
 
@@ -92,4 +96,5 @@ https://www.youtube.com/watch?v=HMpB28l1sLc
 * Unions - https://www.tutorialspoint.com/cprogramming/c_unions.htm
 * MD5 Documentation - https://tools.ietf.org/html/rfc1321
 * Endianness - https://en.wikipedia.org/wiki/Endianness
+* Big Endian to Little Endian - https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
 
