@@ -184,7 +184,7 @@ void nexthash(WORD *M, WORD *H){
 
 // PAD the message
 int nextblock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum flag *status, enum input type){
-    int i;
+    unsigned int i;
     size_t nobytesread;
 
     switch(*status){
@@ -205,10 +205,21 @@ int nextblock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum fl
             if (type  == FILETYPE){
                 // Try to read 64 bytes from the file.
                 nobytesread = fread(M->eight, 1, 64, infile);
+
+                printf("N: %02x", nobytesread);
+
+                printf("M: %02x", M->eight);
             }
             else {
-                M->eight = (uint8_t)str;
-                nobytesread = strlen(str);
+               nobytesread = (size_t) strlen(str);
+
+               i = 0;
+
+               //https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx
+               while(str[i] != '\0')
+               {
+                  M->eight[i++] = (uint8_t) str[i];
+               }
             }
 
             printf("\nTest");
