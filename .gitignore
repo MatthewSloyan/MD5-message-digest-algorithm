@@ -7,6 +7,7 @@ sha256
 endian
 main
 empty
+test
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

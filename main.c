@@ -104,76 +104,76 @@ void nexthash(WORD *M, WORD *H){
     // Code adapted from: https://github.com/Souravpunoriyar/md5-in-c
     // Also following steps from: https://tools.ietf.org/html/rfc1321
     // == Round 1 ==
-    FF(a,b,c,d, W[0], X[0], 0xd76aa478);
-    FF(d,a,b,c, W[1], X[1], 0xe8c7b756);
-    FF(c,d,a,b, W[2], X[2], 0x242070db);
-    FF(b,c,d,a, W[3], X[3], 0xc1bdceee);
-    FF(a,b,c,d, W[4], X[4], 0xf57c0faf);
-    FF(d,a,b,c, W[5], X[5], 0x4787c62a);
-    FF(c,d,a,b, W[6], X[6], 0xa8304613);
-    FF(b,c,d,a, W[7], X[7], 0xfd469501);
-    FF(a,b,c,d, W[8], X[8], 0x698098d8);
-    FF(d,a,b,c, W[9], X[9], 0x8b44f7af);
-    FF(c,d,a,b, W[10],X[10],0xffff5bb1);
-    FF(b,c,d,a, W[11],X[11],0x895cd7be);
-    FF(a,b,c,d, W[12],X[12],0x6b901122);
-    FF(d,a,b,c, W[13],X[13],0xfd987193);
-    FF(c,d,a,b, W[14],X[14],0xa679438e);
-    FF(b,c,d,a, W[15],X[15],0x49b40821);
+    FF(a,b,c,d, W[0], X[0], T[0]);
+    FF(d,a,b,c, W[1], X[1], T[1]);
+    FF(c,d,a,b, W[2], X[2], T[2]);
+    FF(b,c,d,a, W[3], X[3], T[3]);
+    FF(a,b,c,d, W[4], X[4], T[4]);
+    FF(d,a,b,c, W[5], X[5], T[5]);
+    FF(c,d,a,b, W[6], X[6], T[6]);
+    FF(b,c,d,a, W[7], X[7], T[7]);
+    FF(a,b,c,d, W[8], X[8], T[8]);
+    FF(d,a,b,c, W[9], X[9], T[9]);
+    FF(c,d,a,b, W[10],X[10],T[10]);
+    FF(b,c,d,a, W[11],X[11],T[11]);
+    FF(a,b,c,d, W[12],X[12],T[12]);
+    FF(d,a,b,c, W[13],X[13],T[13]);
+    FF(c,d,a,b, W[14],X[14],T[14]);
+    FF(b,c,d,a, W[15],X[15],T[15]);
 
     // == Round 2 ==
-    GG(a,b,c,d, W[1], X[16],0xf61e2562);
-    GG(d,a,b,c, W[6], X[17],0xc040b340);
-    GG(c,d,a,b, W[11],X[18],0x265e5a51);
-    GG(b,c,d,a, W[0], X[19],0xe9b6c7aa);
-    GG(a,b,c,d, W[5], X[20],0xd62f105d);
-    GG(d,a,b,c, W[10],X[21],0x02441453);
-    GG(c,d,a,b, W[15],X[22],0xd8a1e681);
-    GG(b,c,d,a, W[4], X[23],0xe7d3fbc8);
-    GG(a,b,c,d, W[9], X[24],0x21e1cde6);
-    GG(d,a,b,c, W[14],X[25],0xc33707d6);
-    GG(c,d,a,b, W[3], X[26],0xf4d50d87);
-    GG(b,c,d,a, W[8], X[27],0x455a14ed);
-    GG(a,b,c,d, W[13],X[28],0xa9e3e905);
-    GG(d,a,b,c, W[2], X[29],0xfcefa3f8);
-    GG(c,d,a,b, W[7], X[30],0x676f02d9);
-    GG(b,c,d,a, W[12],X[31],0x8d2a4c8a);
+    GG(a,b,c,d, W[1], X[16],T[16]);
+    GG(d,a,b,c, W[6], X[17],T[17]);
+    GG(c,d,a,b, W[11],X[18],T[18]);
+    GG(b,c,d,a, W[0], X[19],T[19]);
+    GG(a,b,c,d, W[5], X[20],T[20]);
+    GG(d,a,b,c, W[10],X[21],T[21]);
+    GG(c,d,a,b, W[15],X[22],T[22]);
+    GG(b,c,d,a, W[4], X[23],T[23]);
+    GG(a,b,c,d, W[9], X[24],T[24]);
+    GG(d,a,b,c, W[14],X[25],T[25]);
+    GG(c,d,a,b, W[3], X[26],T[26]);
+    GG(b,c,d,a, W[8], X[27],T[27]);
+    GG(a,b,c,d, W[13],X[28],T[28]);
+    GG(d,a,b,c, W[2], X[29],T[29]);
+    GG(c,d,a,b, W[7], X[30],T[30]);
+    GG(b,c,d,a, W[12],X[31],T[31]);
 
     // == Round 3 ==
-    HH(a,b,c,d, W[5], X[32],0xfffa3942);
-    HH(d,a,b,c, W[8], X[33],0x8771f681);
-    HH(c,d,a,b, W[11],X[34],0x6d9d6122);
-    HH(b,c,d,a, W[14],X[35],0xfde5380c);
-    HH(a,b,c,d, W[1], X[36],0xa4beea44);
-    HH(d,a,b,c, W[4], X[37],0x4bdecfa9);
-    HH(c,d,a,b, W[7], X[38],0xf6bb4b60);
-    HH(b,c,d,a, W[10],X[39],0xbebfbc70);
-    HH(a,b,c,d, W[13],X[40],0x289b7ec6);
-    HH(d,a,b,c, W[0], X[41],0xeaa127fa);
-    HH(c,d,a,b, W[3], X[42],0xd4ef3085);
-    HH(b,c,d,a, W[6], X[43],0x04881d05);
-    HH(a,b,c,d, W[9], X[44],0xd9d4d039);
-    HH(d,a,b,c, W[12],X[45],0xe6db99e5);
-    HH(c,d,a,b, W[15],X[46],0x1fa27cf8);
-    HH(b,c,d,a, W[2], X[47],0xc4ac5665);
+    HH(a,b,c,d, W[5], X[32],T[32]);
+    HH(d,a,b,c, W[8], X[33],T[33]);
+    HH(c,d,a,b, W[11],X[34],T[34]);
+    HH(b,c,d,a, W[14],X[35],T[35]);
+    HH(a,b,c,d, W[1], X[36],T[36]);
+    HH(d,a,b,c, W[4], X[37],T[37]);
+    HH(c,d,a,b, W[7], X[38],T[38]);
+    HH(b,c,d,a, W[10],X[39],T[39]);
+    HH(a,b,c,d, W[13],X[40],T[40]);
+    HH(d,a,b,c, W[0], X[41],T[41]);
+    HH(c,d,a,b, W[3], X[42],T[42]);
+    HH(b,c,d,a, W[6], X[43],T[43]);
+    HH(a,b,c,d, W[9], X[44],T[44]);
+    HH(d,a,b,c, W[12],X[45],T[45]);
+    HH(c,d,a,b, W[15],X[46],T[46]);
+    HH(b,c,d,a, W[2], X[47],T[47]);
 
     // == Round 4 ==
-    II(a,b,c,d, W[0], X[48],0xf4292244);
-    II(d,a,b,c, W[7], X[49],0x432aff97);
-    II(c,d,a,b, W[14],X[50],0xab9423a7);
-    II(b,c,d,a, W[5], X[51],0xfc93a039);
-    II(a,b,c,d, W[12],X[52],0x655b59c3);
-    II(d,a,b,c, W[3], X[53],0x8f0ccc92);
-    II(c,d,a,b, W[10],X[54],0xffeff47d);
-    II(b,c,d,a, W[1], X[55],0x85845dd1);
-    II(a,b,c,d, W[8], X[56],0x6fa87e4f);
-    II(d,a,b,c, W[15],X[57],0xfe2ce6e0);
-    II(c,d,a,b, W[6], X[58],0xa3014314);
-    II(b,c,d,a, W[13],X[59],0x4e0811a1);
-    II(a,b,c,d, W[4], X[60],0xf7537e82);
-    II(d,a,b,c, W[11],X[61],0xbd3af235);
-    II(c,d,a,b, W[2], X[62],0x2ad7d2bb);
-    II(b,c,d,a, W[9], X[63],0xeb86d391);
+    II(a,b,c,d, W[0], X[48],T[48]);
+    II(d,a,b,c, W[7], X[49],T[49]);
+    II(c,d,a,b, W[14],X[50],T[50]);
+    II(b,c,d,a, W[5], X[51],T[51]);
+    II(a,b,c,d, W[12],X[52],T[52]);
+    II(d,a,b,c, W[3], X[53],T[53]);
+    II(c,d,a,b, W[10],X[54],T[54]);
+    II(b,c,d,a, W[1], X[55],T[55]);
+    II(a,b,c,d, W[8], X[56],T[56]);
+    II(d,a,b,c, W[15],X[57],T[57]);
+    II(c,d,a,b, W[6], X[58],T[58]);
+    II(b,c,d,a, W[13],X[59],T[59]);
+    II(a,b,c,d, W[4], X[60],T[60]);
+    II(d,a,b,c, W[11],X[61],T[61]);
+    II(c,d,a,b, W[2], X[62],T[62]);
+    II(b,c,d,a, W[9], X[63],T[63]);
 
     // Final step, add up all hash values.
     H[0] += a;
@@ -252,7 +252,7 @@ int nextblock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum fl
     return 1;
 }
 
-void startMD5(FILE *infile, char *str, unsigned int userOption){
+int startMD5(FILE *infile, char *str, unsigned int userOption){
     // Test wheter were on little or big endian machine.
 
     // The current padded message block.
@@ -270,8 +270,11 @@ void startMD5(FILE *infile, char *str, unsigned int userOption){
     if (userOption == 0){
        type = FILETYPE;
     }
-    else {
+    else if (userOption == 1){
        type = STRINGTYPE;
+    }
+    else {
+       return 1;
     }
 
     // Read through all the padded message blocks.
@@ -280,6 +283,8 @@ void startMD5(FILE *infile, char *str, unsigned int userOption){
       // Pass memory address of M.
       nexthash(M.thirtytwo, H);
     }
+
+    printf("Hash: ");
 
     for(int i = 0; i< 4; i++)
     {
@@ -291,10 +296,10 @@ void startMD5(FILE *infile, char *str, unsigned int userOption){
     
     printf("\n");
 
-    for (int i = 0; i < 4; i++){
-        printf("%08" PRIx32 "", H[i]);
-    }
-    printf("\n");
+    //for (int i = 0; i < 4; i++){
+       // printf("%08" PRIx32 "", H[i]);
+    //}
+   // printf("\n");
 }
 
 void menuSystem(unsigned int *userOption)
@@ -318,25 +323,28 @@ void menuSystem(unsigned int *userOption)
 
 int main(int argc, char *argv[])
 {
+  FILE *infile;
+  char str[] = "";
+
 	// Expect and open a single filename.
     if (argc == 2){
-        FILE *infile = fopen(argv[1], "rb");
+        infile = fopen(argv[1], "rb");
         
         if(!infile){
             printf("Error: couldn't open file %s. \n", argv[1]);
             return 1;
-        }   
+        } 
+
+        startMD5(infile, str, 0);
 
         fclose(infile);
-
-        return 1;
     }
     else {
         //== MENU CODE == 
 	      unsigned int userOption = 0;
 
-	      char userString[100] = "";
-	      char fileString[200] = "";
+	      char userString[256] = "";
+	      char fileString[256] = "";
 
 	      int i, j;
 
@@ -354,21 +362,31 @@ int main(int argc, char *argv[])
 	 	        {
 	 	            case 1:
 	 		              printf("\nPlease enter the string you would like to hash: ");
+
+                    //scanf("%[^\n]s",userString);
+                    //printf("%s",userString);
+
 	 		              scanf("%s", userString);
+                    //fgets(userString, 100, stdin);
+                    //scanf("%[^\n]s", userString);
+	 		              
+                    printf("\nInput String: %s \n", userString);
 
-	 		              printf("%s", userString);
-
+                    startMD5(infile, userString, 1);
 	 		              break;
 	 	            case 2:
-	 		              //strcpy(fileString, readFile());
+                    printf("\nPlease enter the file path of the file to hash: ");
+	 		              scanf("%s", fileString);
 
-	 		              if (fileString != "") {
-	 			                printf("%s", fileString);
-	 		              }
-	 		              else {
-	 		  	              printf("\nError loading file, please try again.");
-	 		              }
-	  	              break;
+                    infile = fopen(fileString, "rb");
+        
+                    if(!infile){
+                        printf("Error: couldn't open file %s. \n", argv[1]);
+                        return 1;
+                    } 	 
+                    
+                    startMD5(infile, userString, 0);
+                    break;
 	 	            default:
 	 		              printf("Invalid option\n");
 	 	        }
