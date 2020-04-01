@@ -252,8 +252,17 @@ int nextblock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum fl
     return 1;
 }
 
+// Check if the current machine is little or big endian.
+// Code adapted from: https://helloacm.com/how-to-find-out-whether-a-machine-is-big-endian-or-little-endian-in-cc/
+int checkByteOrder() {
+  short int word = 0x0001;
+  char *b = (char *)&word;
+  return (b[0] ? 1 : 0);
+}
+
 int startMD5(FILE *infile, char *str, unsigned int userOption){
     // Test wheter were on little or big endian machine.
+    int order = checkByteOrder();
 
     // The current padded message block.
     union block M;
@@ -286,22 +295,30 @@ int startMD5(FILE *infile, char *str, unsigned int userOption){
 
     printf("Hash: ");
 
-    for(int i = 0; i< 4; i++)
-    {
-      // Display result in little endian.
-      // Code adapted from: https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
-      printf("%02x%02x%02x%02x", (H[i] >> 0 )&0x000000ff, (H[i] >> 8)&0x000000ff, 
-                                 (H[i] >> 16)&0x000000ff, (H[i] >> 24)&0x000000ff);
+    // Print in either little or big endian depending on check at the start.
+    if (order == 1){
+      for(int i = 0; i< 4; i++)
+      {
+        // Display result in little endian.
+        // Code adapted from: https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
+        printf("%02x%02x%02x%02x", (H[i] >> 0 )&0x000000ff, (H[i] >> 8)&0x000000ff, 
+                                   (H[i] >> 16)&0x000000ff, (H[i] >> 24)&0x000000ff);
+      }
     }
-    
-    printf("\n");
+    else if (order == 0) {
+      // Print as is, in big endian.
+      for (int i = 0; i < 4; i++){
+        printf("%08" PRIx32 "", H[i]);
+      }
+    }
+    else {
+      printf("Error hashing, please try again.");
+    }    
 
-    //for (int i = 0; i < 4; i++){
-       // printf("%08" PRIx32 "", H[i]);
-    //}
-   // printf("\n");
+    printf("\n");
 }
 
+// Menu system used in main
 void menuSystem(unsigned int *userOption)
 {
 	unsigned int userOptionCopy = 0;
