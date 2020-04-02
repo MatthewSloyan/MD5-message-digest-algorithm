@@ -87,9 +87,11 @@ union block{
 
 void nexthash(WORD *M, WORD *H){
 	  // All steps to hash each 16 word block. Defined in section 3.4 
-    unsigned int i, j;
+    unsigned int i, j, w;
     WORD W[16];
     WORD a, b, c, d;
+
+    WORD abcd[4];
 
     // Copy message into new array.
     for (i = 0; i < 16; i++){
@@ -101,6 +103,49 @@ void nexthash(WORD *M, WORD *H){
     b = H[1];
     c = H[2];
     d = H[3];
+
+    for (i=0; i<64; i++){
+      if (i < 16){
+        w = i; 
+        transform(abcd[0], abcd[1], abcd[2], abcd[3], W[w], X[i], T[i], 0);
+      } 
+      else if (i >= 16 && i < 32){
+        w = (5 * i + 1) % 16;
+        transform(abcd[0], abcd[1], abcd[2], abcd[3], W[w], X[i], T[i], 1);
+      } 
+      else if (i >= 32 && i < 48){
+        w = (3 * i + 5) % 16;
+      } 
+      else if (i >= 48){
+        w = (7 * i) % 16;
+      }
+
+      // Move positions.
+      if (i % == 0){
+        abcd[0] = a;
+        abcd[1] = b;
+        abcd[2] = c;
+        abcd[3] = d;
+      } 
+      if (i % == 0){
+        abcd[0] = d;
+        abcd[1] = a;
+        abcd[2] = b;
+        abcd[3] = c;
+      } 
+      else if (){
+        abcd[0] = c;
+        abcd[1] = d;
+        abcd[2] = a;
+        abcd[3] = b;
+      } 
+      else if (i >= 32 && i < 48){
+        abcd[0] = b;
+        abcd[1] = c;
+        abcd[2] = d;
+        abcd[3] = a;
+      }     
+    }
 
     // In time I will make this into a loop to cut down loc.
     // Code adapted from: https://github.com/Souravpunoriyar/md5-in-c
