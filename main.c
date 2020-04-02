@@ -15,6 +15,33 @@
 // Preprocessor variables.
 #define WORD uint32_t
 
+// Bitwise operators in c
+// & (bitwise AND)   | (bitwise OR - v)
+// ^ (bitwise XOR)   << (left shift) 
+// >> (right shift)  ~ (bitwise NOT(X))
+
+// four auxiliary functions (f, g, h and i) that each take as input three 32-bit words and produce as output one 32-bit word.
+// Inline to descrease overhead and increase speed.
+// F(X,Y,Z) = XY v not(X) Z
+// G(X,Y,Z) = XZ v Y not(Z)
+// H(X,Y,Z) = X xor Y xor Z
+// I(X,Y,Z) = Y xor (X v not(Z))
+#define F(x, y, z) ((x & y) | (~x & z)) 
+#define G(x, y, z) ((x & z) | (y & ~z)) 
+#define H(x, y, z) (x ^ y ^ z) 
+#define I(x, y, z) (y ^ (x | ~z)) 
+
+// Push bits off to the left n places, however they are pushed in on the right again (loop around)
+#define ROTL(x, n) ((x << n) | (x >> (32 - n)))
+
+// Bit shifting functions used in rounds 1-4
+// Code adapted from: https://www.slideshare.net/sourav777/sourav-md5
+// Also cleaned up by following steps from: https://tools.ietf.org/html/rfc1321
+#define FF(a,b,c,d,m,s,t) { a += F(b,c,d) + m + t; a = b + ROTL(a,s); }
+#define GG(a,b,c,d,m,s,t) { a += G(b,c,d) + m + t; a = b + ROTL(a,s); }
+#define HH(a,b,c,d,m,s,t) { a += H(b,c,d) + m + t; a = b + ROTL(a,s); }
+#define II(a,b,c,d,m,s,t) { a += I(b,c,d) + m + t; a = b + ROTL(a,s); }
+
 // Predifined values for each round of hashing, as definined in section 3.4.
 const uint32_t X[64] = {
     7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
@@ -48,7 +75,7 @@ const uint32_t T[64] = {
 // Finish = Done all padding.
 enum flag {READ, PAD0, FINISH};
 
-// 
+// Enum to determine if input is a file or a string.
 enum input {FILETYPE, STRINGTYPE};
 
 // union block that occupies the same address space and can take the form of a 64, 32, or 8 bit integer.
@@ -58,39 +85,13 @@ union block{
   uint8_t eight[64];
 };
 
-// Bitwise operators in c
-// & (bitwise AND)   | (bitwise OR - v)
-// ^ (bitwise XOR)   << (left shift) 
-// >> (right shift)  ~ (bitwise NOT(X))
-
-// four auxiliary functions (f, g, h and i) that each take as input three 32-bit words and produce as output one 32-bit word.
-// Inline to descrease overhead and increase speed.
-// F(X,Y,Z) = XY v not(X) Z
-// G(X,Y,Z) = XZ v Y not(Z)
-// H(X,Y,Z) = X xor Y xor Z
-// I(X,Y,Z) = Y xor (X v not(Z))
-#define F(x, y, z) ((x & y) | (~x & z)) 
-#define G(x, y, z) ((x & z) | (y & ~z)) 
-#define H(x, y, z) (x ^ y ^ z) 
-#define I(x, y, z) (y ^ (x | ~z)) 
-
-// Push bits off to the left n places, however they are pushed in on the right again (loop around)
-#define ROTL(x, n) ((x << n) | (x >> (32 - n)))
-
-// Bit shifting functions used in rounds 1-4
-// Code adapted from: https://www.slideshare.net/sourav777/sourav-md5
-// Also cleaned up by following steps from: https://tools.ietf.org/html/rfc1321
-#define FF(a,b,c,d,m,s,t) { a += F(b,c,d) + m + t; a = b + ROTL(a,s); }
-#define GG(a,b,c,d,m,s,t) { a += G(b,c,d) + m + t; a = b + ROTL(a,s); }
-#define HH(a,b,c,d,m,s,t) { a += H(b,c,d) + m + t; a = b + ROTL(a,s); }
-#define II(a,b,c,d,m,s,t) { a += I(b,c,d) + m + t; a = b + ROTL(a,s); }
-
 void nexthash(WORD *M, WORD *H){
-	  // All steps to hash each 16 word block. 
+	  // All steps to hash each 16 word block. Defined in section 3.4 
     unsigned int i, j;
     WORD W[16];
     WORD a, b, c, d;
 
+    // Copy message into new array.
     for (i = 0; i < 16; i++){
        W[i] = M[i];
     }
@@ -185,16 +186,22 @@ void nexthash(WORD *M, WORD *H){
 
 // PAD the message
 int nextblock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum flag *status, enum input type){
-    unsigned int i;
+    unsigned int i = 0;
     size_t nobytesread;
 
+    // PAD0 = Doesn't have enough space to do all padding. Pad rest with 0's
+    // PAD1 = Read to end block perfectly, E.g 512 bits + padding. 1 bit + 450 0 bits.
+    // FINISH = Padding complete.
     switch(*status){
         case FINISH:
+            // Block is padded.
             return 0;
         case PAD0:
+            // Pad block with 0's.
+
             // Sets all bits to 0. Take away 8byte int (64 - 8 = 56)
             // We need an all-padding block without the 1 bit.
-            for (int i = 0; i < 56; i++){
+            for (i = 0; i < 56; i++){
                 M->eight[i] = 0x00;
             }
             
@@ -202,35 +209,33 @@ int nextblock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum fl
             *status = FINISH;
             break;
         default: 
-            // Check
+            // Check if file or string input.
             if (type  == FILETYPE){
                 // Try to read 64 bytes from the file.
                 nobytesread = fread(M->eight, 1, 64, infile);
-
-                //printf("N: %02x", nobytesread);
-
-               // printf("M: %02x", M->eight);
             }
             else {
+               // Otherwise get the bytes from the file using the length.
                nobytesread = (size_t) strlen(str);
 
                i = 0;
-
-               //https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx
+               // Loop through string and copy into block.
+               //Code adapted from: https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx
                while(str[i] != '\0')
                {
                   M->eight[i++] = (uint8_t) str[i];
                }
             }
 
-            //printf("\nTest");
-
             *nobits += (8ULL * ((uint64_t) nobytesread));
             
+            // We can put all padding in this block if < 56.
+            // Message is perfect size and can be finished in one step.
             if (nobytesread < 56) {
-                // We can put all padding in this block.
+                // Append 1 bit to the start.
                 M->eight[nobytesread] = 0x80;
 
+                // Pad with 0's
                 for (i = nobytesread + 1; i < 56; i++){
                     M->eight[i] = 0x00;
                 }
@@ -238,18 +243,20 @@ int nextblock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum fl
                 M->sixtyfour[7] = *nobits;
                 *status = FINISH;
             } 
+            // Message will not fit so we will need another padding block.
+            // Read at least 56 bits but less than 64, so pad with 0's
+            // Otherwise we have to read between 56 (incl) and 64 (excl) bytes.
             else if (nobytesread < 64) {
-                // Read at least 56 bits but less than 64, so pad with 0's
-                // Otherwise we have read between 56 (incl) and 64 (excl) bytes.
+                // Append 1 bit to the start.
                 M->eight[nobytesread] = 0x80;
 
-                for (int i = nobytesread + 1; i < 64; i++){
+                // Pad with 0's
+                for (i = nobytesread + 1; i < 64; i++){
                     M->eight[i] = 0x00;
                 }
                 *status = PAD0;
             }
     }
-
     return 1;
 }
 
@@ -268,6 +275,7 @@ void printToFile(WORD *H, int order)
   char fileString[256] = "";
   FILE *file;
 
+  // Menu system to ask the user if they want to print to file or not (Yes = 1, No = 2)
 	do
 	{
 		printf("\nWould you like to print result to file?\n [1] Yes\n [2] No\n");
@@ -286,6 +294,7 @@ void printToFile(WORD *H, int order)
 	    printf("\nPlease enter the name of the file with extension (.txt): ");
       scanf("%s", fileString);
 
+      // Open file for writing.
       // Code adapted from: https://www.tutorialspoint.com/cprogramming/c_file_io.htm
       file = fopen(fileString, "w+");
 
@@ -310,30 +319,42 @@ void printToFile(WORD *H, int order)
             }
           }
 
-          printf("\nResult printed to file successfully\n");
-
-        //for(int i = 0; i< 4; i++)
-        //{
-          //fprintf(file, H[i]);
-        //} 
-        //for (int i = 0; i < 4; i++){
-          //fprintf(file, "%08" PRIx32 "", final[i]);
-        //}
+          printf("\nResult printed to file successfully\n");      
       }
-      
-      //fclose(file);
-      break;
-    case 2:
-      break;
+
+      fclose(file);
+      break;    
     default:
 	    printf("Invalid option\n");
-      break;
-   }
-   fclose(file);
+    break;
+  }
 }
 
+// Menu system used in main
+void menuSystem(unsigned int *userOption)
+{
+	unsigned int userOptionCopy = 0;
 
+  // Loop until correct input is entered.
+	do
+	{
+		printf("\nPlease select an option\n [1] Enter text to hash\n [2] Hash with file\n");
+		printf(" [0] To Exit\n");
+		scanf("%d", &userOptionCopy);
+
+    // userOption is updated back in main.
+		*userOption = userOptionCopy;
+
+		if (*userOption < 0 || *userOption > 2) {
+			printf("Error! The value entered must be between 0 and 2, please try again\n");
+		}
+
+	} while (*userOption < 0 || *userOption > 2); //validation to allow only numbers between 0 and 2
+}
+
+// MD5 method which controls, hashing and printing final hash values.
 int startMD5(FILE *infile, char *str, unsigned int userOption){
+
     // Test wheter were on little or big endian machine.
     int order = checkByteOrder();
 
@@ -342,14 +363,13 @@ int startMD5(FILE *infile, char *str, unsigned int userOption){
     uint64_t nobits = 0;
     enum flag status = READ;
     enum input type;
-    //char *finalHash = NULL;
-    //char str[] = "message digest";
 
-    // These 32 bit registers are initialized to the following values in hexadecimal, low-order bytes first.
-    //const uint32_t digest[] = { 0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210 };
     // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
     WORD H[] = { 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476 };
 
+    // Set type depending on menu input.
+    // 0 = Reading from a file.
+    // 1 = Reading from a string.
     if (userOption == 0){
        type = FILETYPE;
     }
@@ -363,13 +383,13 @@ int startMD5(FILE *infile, char *str, unsigned int userOption){
     // Read through all the padded message blocks.
     while (nextblock(&M, infile, str, &nobits, &status, type)){
       // Calculate the next hash value.
-      // Pass memory address of M.
+      // Pass memory address of M and H.
       nexthash(M.thirtytwo, H);
     }
 
     printf("Hash: ");
 
-    // Print in either little or big endian depending on check at the start.
+    // Print final result in either little or big endian depending on check at the start.
     if (order == 1){
       for(int i = 0; i< 4; i++)
       {
@@ -390,35 +410,17 @@ int startMD5(FILE *infile, char *str, unsigned int userOption){
     } 
     printf("\n");
 
+    // Ask the user if they would like to print result to file.
     printToFile(H, order);
-}
-
-// Menu system used in main
-void menuSystem(unsigned int *userOption)
-{
-	unsigned int userOptionCopy = 0;
-
-	do
-	{
-		printf("\nPlease select an option\n [1] Enter text to hash\n [2] Hash with file\n");
-		printf(" [0] To Exit\n");
-		scanf("%d", &userOptionCopy);
-
-		*userOption = userOptionCopy;
-
-		if (*userOption < 0 || *userOption > 2) {
-			printf("Error! The value entered must be between 0 and 2, please try again\n");
-		}
-
-	} while (*userOption < 0 || *userOption > 2); //validation to allow only numbers between 0 and 2
 }
 
 int main(int argc, char *argv[])
 {
-  FILE *infile;
-  char str[] = "";
+    FILE *infile;
+    char str[] = "";
 
-	// Expect and open a single filename.
+	  // Check if there's input from the company line,
+    // as hashing can be completed quickly without menu UI. 
     if (argc == 2){
         infile = fopen(argv[1], "rb");
         
@@ -426,10 +428,9 @@ int main(int argc, char *argv[])
             printf("Error: couldn't open file %s. \n", argv[1]);
             return 1;
         } 
-
+        
+        // Start hashing the file.
         startMD5(infile, str, 0);
-
-        fclose(infile);
     }
     else {
         //== MENU CODE == 
@@ -453,17 +454,12 @@ int main(int argc, char *argv[])
 	          switch (userOption)
 	 	        {
 	 	            case 1:
-	 		              printf("\nPlease enter the string you would like to hash: ");
+	 		              printf("\nPlease enter the string you would like to hash: ");	 		              
+                    scanf("%s", userString);
 
-                    //scanf("%[^\n]s",userString);
-                    //printf("%s",userString);
-
-	 		              scanf("%s", userString);
-                    //fgets(userString, 100, stdin);
-                    //scanf("%[^\n]s", userString);
-	 		              
                     printf("\nInput String: %s \n", userString);
 
+                    // Start hashing the string.
                     startMD5(infile, userString, 1);
 	 		              break;
 	 	            case 2:
@@ -477,6 +473,7 @@ int main(int argc, char *argv[])
                         return 1;
                     } 	 
                     
+                    // Start hashing the file.
                     startMD5(infile, userString, 0);
                     break;
 	 	            default:
