@@ -4,6 +4,7 @@
 //Github Link:
 //https://github.com/MatthewSloyan/MD5-message-digest-algorithm
 
+#define _GNU_SOURCE
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -260,6 +261,78 @@ int checkByteOrder() {
   return (b[0] ? 1 : 0);
 }
 
+// print hash to file.
+void printToFile(WORD *H, int order)
+{
+	unsigned int userOption = 0;
+  char fileString[256] = "";
+  FILE *file;
+
+	do
+	{
+		printf("\nWould you like to print result to file?\n [1] Yes\n [2] No\n");
+		scanf("%d", &userOption);
+
+		if (userOption < 1 || userOption > 2) {
+			printf("Error! The value entered must be 1 or 2, please try again\n");
+		}
+
+	} while (userOption < 1 || userOption > 2); //validation
+
+  //switch based on the user input
+	switch (userOption)
+	{
+	  case 1:
+	    printf("\nPlease enter the name of the file with extension (.txt): ");
+      scanf("%s", fileString);
+
+      // Code adapted from: https://www.tutorialspoint.com/cprogramming/c_file_io.htm
+      file = fopen(fileString, "w+");
+
+      if(!file){
+        printf("Error: Creating file. Please try again.\n");
+      }
+      else {
+          // Print in either little or big endian depending on check at the start.
+         if (order == 1){
+            for(int i = 0; i< 4; i++)
+            {
+            // Display result in little endian.
+            // Code adapted from: https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
+            fprintf(file, "%02x%02x%02x%02x", (H[i] >> 0 )&0x000000ff, (H[i] >> 8)&0x000000ff, 
+                                              (H[i] >> 16)&0x000000ff, (H[i] >> 24)&0x000000ff);
+            }
+          }
+          else if (order == 0) {
+            // Print as is, in big endian.
+            for (int i = 0; i < 4; i++){
+              fprintf(file, "%08" PRIx32 "", H[i]);
+            }
+          }
+
+          printf("\nResult printed to file successfully\n");
+
+        //for(int i = 0; i< 4; i++)
+        //{
+          //fprintf(file, H[i]);
+        //} 
+        //for (int i = 0; i < 4; i++){
+          //fprintf(file, "%08" PRIx32 "", final[i]);
+        //}
+      }
+      
+      //fclose(file);
+      break;
+    case 2:
+      break;
+    default:
+	    printf("Invalid option\n");
+      break;
+   }
+   fclose(file);
+}
+
+
 int startMD5(FILE *infile, char *str, unsigned int userOption){
     // Test wheter were on little or big endian machine.
     int order = checkByteOrder();
@@ -269,6 +342,7 @@ int startMD5(FILE *infile, char *str, unsigned int userOption){
     uint64_t nobits = 0;
     enum flag status = READ;
     enum input type;
+    //char *finalHash = NULL;
     //char str[] = "message digest";
 
     // These 32 bit registers are initialized to the following values in hexadecimal, low-order bytes first.
@@ -313,9 +387,10 @@ int startMD5(FILE *infile, char *str, unsigned int userOption){
     }
     else {
       printf("Error hashing, please try again.");
-    }    
-
+    } 
     printf("\n");
+
+    printToFile(H, order);
 }
 
 // Menu system used in main
@@ -413,5 +488,6 @@ int main(int argc, char *argv[])
 	      } //while
     }
 
+    fclose(infile);
     return 0;
   }
