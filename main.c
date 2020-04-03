@@ -37,10 +37,46 @@
 // Bit shifting functions used in rounds 1-4
 // Code adapted from: https://www.slideshare.net/sourav777/sourav-md5
 // Also cleaned up by following steps from: https://tools.ietf.org/html/rfc1321
+#define TRANSFORM(a,b,c,d,m,s,t,r) { \
+  if (r == 1) \
+    a += F(b,c,d) + m + t; \
+  else if (r == 2) \
+    a += G(b,c,d) + m + t; \
+  else if (r == 3) \
+    a += H(b,c,d) + m + t; \
+  else if (r == 4) \
+    a += I(b,c,d) + m + t; \
+  a = b + ROTL(a,s); \
+}
+
+#define TRANS(a,b,c,d,m,s,t,r) { \
+  if (r == 1) \
+    FF(a,b,c,d,m,s,t) \
+  else if (r == 2) \
+    GG(a,b,c,d,m,s,t) \
+  else if (r == 3) \
+    HH(a,b,c,d,m,s,t) \
+  else if (r == 4) \
+    II(a,b,c,d,m,s,t) \
+}
+
 #define FF(a,b,c,d,m,s,t) { a += F(b,c,d) + m + t; a = b + ROTL(a,s); }
 #define GG(a,b,c,d,m,s,t) { a += G(b,c,d) + m + t; a = b + ROTL(a,s); }
 #define HH(a,b,c,d,m,s,t) { a += H(b,c,d) + m + t; a = b + ROTL(a,s); }
 #define II(a,b,c,d,m,s,t) { a += I(b,c,d) + m + t; a = b + ROTL(a,s); }
+
+/*
+void transform(uint32_t *a, uint32_t b, uint32_t c, uint32_t d, uint32_t m, uint32_t s, uint32_t t, int r) {
+  if (r == 1) 
+    *a += F(b,c,d) + m + t; 
+  else if (r == 2) 
+    *a += G(b,c,d) + m + t; 
+  else if (r == 3) 
+    *a += H(b,c,d) + m + t; 
+  else if (r == 4) 
+    *a += I(b,c,d) + m + t; 
+  *a = b + ROTL(*a,s); 
+} */
 
 // Predifined values for each round of hashing, as definined in section 3.4.
 const uint32_t X[64] = {
@@ -87,7 +123,7 @@ union block{
 
 void nexthash(WORD *M, WORD *H){
 	  // All steps to hash each 16 word block. Defined in section 3.4 
-    unsigned int i, j, w;
+    unsigned int i, j, w, round;
     WORD W[16];
     WORD a, b, c, d;
 
@@ -97,66 +133,92 @@ void nexthash(WORD *M, WORD *H){
     for (i = 0; i < 16; i++){
        W[i] = M[i];
     }
-   
+
+     // Assign initial values to temp variables in memory.
+	  //a = H[0];
+    //b = H[1];
+    //c = H[2];
+    //d = H[3];
+
+    
 	  // Assign initial values to temp variables in memory.
-	  a = H[0];
-    b = H[1];
-    c = H[2];
-    d = H[3];
+	  abcd[0] = H[0];
+    abcd[1] = H[1];
+    abcd[2] = H[2];
+    abcd[3] = H[3];
+
+    printf("%08" PRIx32 "", abcd[0]);
 
     for (i=0; i<64; i++){
+
+      // Move positions.
+      if (i % 4 == 0 && i != 0){
+        abcd[0] = abcd[0]; //a
+        abcd[1] = abcd[1]; //b
+        abcd[2] = abcd[2]; //c
+        abcd[3] = abcd[3]; //d
+      	printf("One\n");
+      } 
+      else if (i % 4 == 1){
+        abcd[0] = abcd[3]; //d
+        abcd[1] = abcd[0]; //a
+        abcd[2] = abcd[1]; //b
+        abcd[3] = abcd[2]; //c
+        printf("Two\n");
+      } 
+      else if (i % 4 == 2){
+        abcd[0] = abcd[2]; //c
+        abcd[1] = abcd[3]; //d
+        abcd[2] = abcd[0]; //a
+        abcd[3] = abcd[1]; //b
+        printf("Three\n");
+      } 
+      else if (i % 4 == 3){
+        abcd[0] = abcd[1]; //b
+        abcd[1] = abcd[2]; //c
+        abcd[2] = abcd[3]; //d
+        abcd[3] = abcd[0]; //a
+        printf("Four\n");
+      }  
+
       if (i < 16){
         w = i; 
-        transform(abcd[0], abcd[1], abcd[2], abcd[3], W[w], X[i], T[i], 0);
+        round = 1;
       } 
       else if (i >= 16 && i < 32){
         w = (5 * i + 1) % 16;
-        transform(abcd[0], abcd[1], abcd[2], abcd[3], W[w], X[i], T[i], 1);
+        round = 2;
       } 
       else if (i >= 32 && i < 48){
         w = (3 * i + 5) % 16;
+        round = 3;      
       } 
       else if (i >= 48){
         w = (7 * i) % 16;
+        round = 4;
       }
 
-      // Move positions.
-      if (i % == 0){
-        abcd[0] = a;
-        abcd[1] = b;
-        abcd[2] = c;
-        abcd[3] = d;
-      } 
-      if (i % == 0){
-        abcd[0] = d;
-        abcd[1] = a;
-        abcd[2] = b;
-        abcd[3] = c;
-      } 
-      else if (){
-        abcd[0] = c;
-        abcd[1] = d;
-        abcd[2] = a;
-        abcd[3] = b;
-      } 
-      else if (i >= 32 && i < 48){
-        abcd[0] = b;
-        abcd[1] = c;
-        abcd[2] = d;
-        abcd[3] = a;
-      }     
+      TRANSFORM(abcd[0], abcd[1], abcd[2], abcd[3], W[w], X[i], T[i], round);
+      printf("\n%08" PRIx32 "", abcd[0]);
+      
     }
 
     // In time I will make this into a loop to cut down loc.
     // Code adapted from: https://github.com/Souravpunoriyar/md5-in-c
     // Also following steps from: https://tools.ietf.org/html/rfc1321
     // == Round 1 ==
-    FF(a,b,c,d, W[0], X[0], T[0]);
+    /*FF(a,b,c,d, W[0], X[0], T[0]);
+    printf("\n%08" PRIx32 "", a);
     FF(d,a,b,c, W[1], X[1], T[1]);
+printf("\n%08" PRIx32 "", a);
     FF(c,d,a,b, W[2], X[2], T[2]);
+printf("\n%08" PRIx32 "", a);
     FF(b,c,d,a, W[3], X[3], T[3]);
+printf("\n%08" PRIx32 "", a);
     FF(a,b,c,d, W[4], X[4], T[4]);
+printf("\n%08" PRIx32 "", a);
     FF(d,a,b,c, W[5], X[5], T[5]);
+printf("\n%08" PRIx32 "", a);
     FF(c,d,a,b, W[6], X[6], T[6]);
     FF(b,c,d,a, W[7], X[7], T[7]);
     FF(a,b,c,d, W[8], X[8], T[8]);
@@ -220,13 +282,22 @@ void nexthash(WORD *M, WORD *H){
     II(a,b,c,d, W[4], X[60],T[60]);
     II(d,a,b,c, W[11],X[61],T[61]);
     II(c,d,a,b, W[2], X[62],T[62]);
-    II(b,c,d,a, W[9], X[63],T[63]);
+printf("\n%08" PRIx32 "", a);
+    II(b,c,d,a, W[9], X[63],T[63]); 
+
+    printf("\n%08" PRIx32 "", a); */
 
     // Final step, add up all hash values.
-    H[0] += a;
-    H[1] += b;
-    H[2] += c;
-    H[3] += d;
+    H[0] += abcd[0];
+    H[1] += abcd[1];
+    H[2] += abcd[2];
+    H[3] += abcd[3];
+
+    // Final step, add up all hash values.
+    //H[0] += a;
+   // H[1] += b;
+   // H[2] += c;
+    //H[3] += d;
 }
 
 // PAD the message
@@ -368,7 +439,9 @@ void printToFile(WORD *H, int order)
       }
 
       fclose(file);
-      break;    
+      break;
+    case 2:
+      break;
     default:
 	    printf("Invalid option\n");
     break;
