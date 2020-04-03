@@ -10,7 +10,6 @@
 #include<string.h>
 #include<stdint.h>
 #include<inttypes.h>
-#include<byteswap.h>
 
 // Preprocessor variables.
 #define WORD uint32_t
@@ -35,7 +34,9 @@
 #define ROTL(x, n) ((x << n) | (x >> (32 - n)))
 
 // Bit shifting functions used in rounds 1-4
-// Code adapted from: https://www.slideshare.net/sourav777/sourav-md5
+// Code initially created with four functions FF, GG, HH and II but I developed one inline
+// function that works with all rounds r.
+// Initially adapted from: https://www.slideshare.net/sourav777/sourav-md5
 // Also cleaned up by following steps from: https://tools.ietf.org/html/rfc1321
 #define TRANSFORM(a,b,c,d,m,s,t,r) { \
   if (r == 1) \
@@ -48,11 +49,6 @@
     a += I(b,c,d) + m + t; \
   a = b + ROTL(a,s); \
 }
-
-#define FF(a,b,c,d,m,s,t) { a += F(b,c,d) + m + t; a = b + ROTL(a,s); }
-#define GG(a,b,c,d,m,s,t) { a += G(b,c,d) + m + t; a = b + ROTL(a,s); }
-#define HH(a,b,c,d,m,s,t) { a += H(b,c,d) + m + t; a = b + ROTL(a,s); }
-#define II(a,b,c,d,m,s,t) { a += I(b,c,d) + m + t; a = b + ROTL(a,s); }
 
 // Predifined values for each round of hashing, as definined in section 3.4.
 const uint32_t X[64] = {
@@ -113,26 +109,34 @@ void nexthash(WORD *M, WORD *H){
     b = H[1];
     c = H[2];
     d = H[3];
-
+    
+    // Loop once for each round.
     for (i=0; i<64; i++){
 
+      // Check which round currently in (1 - 4)
+      // W is the index of the message to pass to transform.
+      // Maths to calculate w was adapted from MD5 Pseudocode below: 
+      // https://en.wikipedia.org/wiki/MD5
       if (i < 16){
         w = i; 
         round = 1;
       } 
-      else if (i >= 16 && i < 32){
+      else if (i < 32){
         w = (5 * i + 1) % 16;
         round = 2;
       } 
-      else if (i >= 32 && i < 48){
+      else if (i < 48){
         w = (3 * i + 5) % 16;
         round = 3;      
       } 
-      else if (i >= 48){
+      else {
         w = (7 * i) % 16;
         round = 4;
       }
      
+      // Check which transform to use, a b c d rotates every 4 iterations.
+      // This was developed from initial version with all steps had their own line.
+      // Pass in round above to determine which auxiliary function to use.
       if (i % 4 == 0){
         TRANSFORM(a, b, c, d, W[w], X[i], T[i], round);
       } 
@@ -146,81 +150,6 @@ void nexthash(WORD *M, WORD *H){
         TRANSFORM(b, c, d, a, W[w], X[i], T[i], round);
       }    
     }
-
-    // In time I will make this into a loop to cut down loc.
-    // Code adapted from: https://github.com/Souravpunoriyar/md5-in-c
-    // Also following steps from: https://tools.ietf.org/html/rfc1321
-    // == Round 1 ==
-    /*FF(a,b,c,d, W[0], X[0], T[0]);
-    FF(d,a,b,c, W[1], X[1], T[1]);
-    FF(c,d,a,b, W[2], X[2], T[2]);
-    FF(b,c,d,a, W[3], X[3], T[3]);
-    FF(a,b,c,d, W[4], X[4], T[4]);
-    FF(d,a,b,c, W[5], X[5], T[5]);
-    FF(c,d,a,b, W[6], X[6], T[6]);
-    FF(b,c,d,a, W[7], X[7], T[7]);
-    FF(a,b,c,d, W[8], X[8], T[8]);
-    FF(d,a,b,c, W[9], X[9], T[9]);
-    FF(c,d,a,b, W[10],X[10],T[10]);
-    FF(b,c,d,a, W[11],X[11],T[11]);
-    FF(a,b,c,d, W[12],X[12],T[12]);
-    FF(d,a,b,c, W[13],X[13],T[13]);
-    FF(c,d,a,b, W[14],X[14],T[14]);
-    FF(b,c,d,a, W[15],X[15],T[15]);
-
-    // == Round 2 ==
-    GG(a,b,c,d, W[1], X[16],T[16]);
-    GG(d,a,b,c, W[6], X[17],T[17]);
-    GG(c,d,a,b, W[11],X[18],T[18]);
-    GG(b,c,d,a, W[0], X[19],T[19]);
-    GG(a,b,c,d, W[5], X[20],T[20]);
-    GG(d,a,b,c, W[10],X[21],T[21]);
-    GG(c,d,a,b, W[15],X[22],T[22]);
-    GG(b,c,d,a, W[4], X[23],T[23]);
-    GG(a,b,c,d, W[9], X[24],T[24]);
-    GG(d,a,b,c, W[14],X[25],T[25]);
-    GG(c,d,a,b, W[3], X[26],T[26]);
-    GG(b,c,d,a, W[8], X[27],T[27]);
-    GG(a,b,c,d, W[13],X[28],T[28]);
-    GG(d,a,b,c, W[2], X[29],T[29]);
-    GG(c,d,a,b, W[7], X[30],T[30]);
-    GG(b,c,d,a, W[12],X[31],T[31]);
-
-    // == Round 3 ==
-    HH(a,b,c,d, W[5], X[32],T[32]);
-    HH(d,a,b,c, W[8], X[33],T[33]);
-    HH(c,d,a,b, W[11],X[34],T[34]);
-    HH(b,c,d,a, W[14],X[35],T[35]);
-    HH(a,b,c,d, W[1], X[36],T[36]);
-    HH(d,a,b,c, W[4], X[37],T[37]);
-    HH(c,d,a,b, W[7], X[38],T[38]);
-    HH(b,c,d,a, W[10],X[39],T[39]);
-    HH(a,b,c,d, W[13],X[40],T[40]);
-    HH(d,a,b,c, W[0], X[41],T[41]);
-    HH(c,d,a,b, W[3], X[42],T[42]);
-    HH(b,c,d,a, W[6], X[43],T[43]);
-    HH(a,b,c,d, W[9], X[44],T[44]);
-    HH(d,a,b,c, W[12],X[45],T[45]);
-    HH(c,d,a,b, W[15],X[46],T[46]);
-    HH(b,c,d,a, W[2], X[47],T[47]);
-
-    // == Round 4 ==
-    II(a,b,c,d, W[0], X[48],T[48]);
-    II(d,a,b,c, W[7], X[49],T[49]);
-    II(c,d,a,b, W[14],X[50],T[50]);
-    II(b,c,d,a, W[5], X[51],T[51]);
-    II(a,b,c,d, W[12],X[52],T[52]);
-    II(d,a,b,c, W[3], X[53],T[53]);
-    II(c,d,a,b, W[10],X[54],T[54]);
-    II(b,c,d,a, W[1], X[55],T[55]);
-    II(a,b,c,d, W[8], X[56],T[56]);
-    II(d,a,b,c, W[15],X[57],T[57]);
-    II(c,d,a,b, W[6], X[58],T[58]);
-    II(b,c,d,a, W[13],X[59],T[59]);
-    II(a,b,c,d, W[4], X[60],T[60]);
-    II(d,a,b,c, W[11],X[61],T[61]);
-    II(c,d,a,b, W[2], X[62],T[62]);
-    II(b,c,d,a, W[9], X[63],T[63]); */
 
     // Final step, add up all hash values.
     H[0] += a;
@@ -243,7 +172,6 @@ int nextblock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum fl
             return 0;
         case PAD0:
             // Pad block with 0's.
-
             // Sets all bits to 0. Take away 8byte int (64 - 8 = 56)
             // We need an all-padding block without the 1 bit.
             for (i = 0; i < 56; i++){
