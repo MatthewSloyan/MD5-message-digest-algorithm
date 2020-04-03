@@ -128,10 +128,17 @@ This week I continued implementing the MD5 algorithm. I started by refactoring m
 #### Week of 15-3-20 to 22-3-20
 After some more testing I realised the problem was due to the byte swapping I was doing, I was using big endian initial hash values, but then swapping the byte order to little endian during the padding. From research of the documentation and example provided it seems that the MD5 hashing must be done in big endian. [(MD5 Documentation)](https://tools.ietf.org/html/rfc1321). With this removed the result was correct however it was in the wrong order, so I added a loop which I adapted from StackOverflow to swap the byte order to little endian at end of the process [(Swap to Little endian)](https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem). I will later add a check depending on the machine run on, but this now works on my machine which is little endian.
 
-#### Conclusion 
+#### Week of 22-3-20 to 29-3-20
+This week I continued working on the MD5 implementation. The program as is could take a file in a parameter and return the hash value of that file. I wanted to be able to also take in a string from the user and hash that, so I began implementing this. From research I found that reading bytes from a string can be done by getting the length using strlength() [(strlength)]( https://www.programiz.com/c-programming/library-function/string.h/strlen) and then looping through each byte and copy it to M.eight[i] [(Bytes from string)](https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx). This is slightly different when reading in the bytes of a file and can be done in one step using fread and passing in the value of M.eight. To distinguish between the two ways, I added a 1 or 0 input into the method which is called by the menu system. There is now three ways to run the program. Firstly there is a quick way by running ./main <filename> which will instantly hash the file. Another way is to run ./main which displays a menu and gives the user two options (read from string or file).
+
+#### Final week
+On the final week I worked on getting the project ready for submission, adding final documentation and more comments. Another thing I looked at was optimising the code. One area where I focused on was improving the hashing method and removing the number of lines it took. My initial version had 64 function calls to hash each block, there isn’t a way to cut down the number of functions calls but as it’s a similar code I felt a loop could be developed to clean it up. I took what I already had and started testing different ideas. I needed a way to get the message value index which is certain multiples for each round. E.g. In round 2 it goes 1, 6, 11, 0, 5, 10 etc. I implemented some simple logic adapted from MD5 pseudocode which solved this [(MD5 Pseudocode)](https://en.wikipedia.org/wiki/MD5). With this worked I needed to change my inline transform functions. I modified them to create one single inline function that would work for all rounds. The last step was to work out how to send a b c and d into this function as for every four iterations the values need to be shifted right once. To achieve this, I added a series of modulus statements such as i % 4 == 0, I % 4 == 1 etc. This cut down the code significantly and improved the code readability. I also made improvements to where the bytes where read in removing it from the padding and into the startMD5 function. This cleaned up the padding functions and it’s parameters.
+ 
+#### Conclusion
+Overall, I am very happy with how the project turned out, and it has been an extremely good learning experience. It was interesting working on a lower level than usual, which is something that will help me in my career. I have also learned a lot more about C, the compiler, little/big endian, bytes/bits and hashing algorithms amongst others.
 
 ## References 
-All references are also in code in respective areas.
+All references are found in this README or code in respective areas.
 
 **Project Research**
 * VI tutorials - https://www.guru99.com/the-vi-editor.html
@@ -145,4 +152,8 @@ https://www.youtube.com/watch?v=HMpB28l1sLc
 * MD5 Documentation - https://tools.ietf.org/html/rfc1321
 * Endianness - https://en.wikipedia.org/wiki/Endianness
 * Big Endian to Little Endian - https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
+* strlength - https://www.programiz.com/c-programming/library-function/string.h/strlen
+* Bytes from string - https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx
+* MD5 Pseudocode - https://en.wikipedia.org/wiki/MD5
+* SHA 256 algorithm provided by lecturer: https://github.com/ianmcloughlin/sha256
 
