@@ -1,7 +1,8 @@
 # Theory of Algorithms Project 
 
-Name: Matthew Sloyan
-Student ID: G00348036
+**Name:** Matthew Sloyan
+
+**Student ID:** G00348036
 
 # Project statement
 You must write a program in the C programming language [2] that calculates the MD5 hash digest of an input. The algorithm is specified in the Request For Comments 1321 document supplied by the Internet Engineering Task Force [5]. The only pre-requisite is that your program performs the algorithm — you are free to decide what input the algorithm should be performed on. I suggest you allow the user to input some free text or a filename via the command line.
@@ -10,28 +11,75 @@ You must write a program in the C programming language [2] that calculates the M
 Coded and tested on a Linux Debian 10 (buster) Google Cloud Virtual Machine. All code was written in VI and compiled by connecting to the VM using SSH.
 
 # How to run program
-* First, clone the repository using the following command `git clone https://github.com/MatthewSloyan/MD5-message-digest-algorithmt` 
+* First, clone the repository using the following command `git clone https://github.com/MatthewSloyan/MD5-message-digest-algorithm` 
 * Traverse using the command line to the folder you have cloned using the cd command.
-* Compile main.c file to execute using gcc -o main main.c
-* Execute file using ./main
+* Compile main.c file to execute using `gcc -o main main.c` or `make main` if build build-essentials is installed.
+* Execute file using `./main` to load menu UI or `./main <filename.ex>` to quickly hash a file. (filename.ex is the path to a file with  it's extension).
+* More information on how to use UI can be foud below in the User Guide section.
 
 # User Guide
 Below you’ll find a basic guide to the user interface, in the “How it works” section is a description of how this works in the code behind.
 
-* You will be presented with a menu..
+There are two ways to run the program, firstly it can be run quickly by using `./main test.txt` to get a hash result on the file passed in as a parameter (test.txt). To run the full program with a UI, enter `./main` and a menu will be presented with options 1, 2 or 0 which are described below.
+
+* 1 – Allows the user to enter a string to hash. A prompt will be displayed to input a string. Once entered the program will hash the string and return the hash to the user.
+* 2 – Allows the user to enter a file to hash. A prompt will be displayed to input a file path to a chosen file E.g `TestCode/test.txt`. Once entered and the file is found the program will hash the file and return the result to the user.
+* 0 – Exit the program.
+
+On all three options the user then has the option to print the result to a file. Presented is a menu with options 1 or 2. 1 is Yes and 2 is No. If yes is selected the user is given the option to enter the file name. This must include the file extension such as .txt. This file will be written to the current directory.
 
 # How it works
+More information on each of these steps above can be found in the Research & Development Diary section below.
+
+### Padding the message
+Padding is completed for each message block so that it is congruent to 448 bits, modulo 512 as defined in the MD5 standard [(MD5 Documentation)](https://tools.ietf.org/html/rfc1321). The message is extended to be 64 bits less than 512 bits. Padding is always performed even if the message is 448 bits, a full block of padding will be added after if this occurs. Padding is done by adding a “1” bit followed by any number of “0” bits until the padded message becomes 448 bits. 64 bits are then added to complete the message. These 64 bits are the length of the message before padding was added.
+
+Initially the message (file or string) in bytes is passed into the padding function. This is run in a while loop until the message has been fully padded (status returns FINISH). This is achieved by first checking the status. If it’s the default status get the length of the message which will be appended at the end and check if the bytes are less than 56, if so then the message can be padded in one block. A “1” is added then a string of “0” up till 56 bits. The 64 bit value is then added to complete the padding. If bytes read is between 56 and 64 then a new block of padding is needed, so it will pad with zeros. Again, add a “1” bit to the start, pad till the end (64 bits) and set status to PAD0 for next iteration. If the status is PAD0 then pad a full block with zeros and append the 64 message length to finish the padding, and set status to FINISH. If the status is FINISH then the padding is complete which will return 0 and finish the loop.
+
+### Hashing the message
+Before the hashing takes place an initial four-word buffer must be initialised (MD – A B C D) with the values below. This buffer becomes the final hash output.
+* word A: 01 23 45 67
+* word B: 89 ab cd ef
+* word C: fe dc ba 98
+* word D: 76 54 32 10
+
+When the message is padded the initial hash values above and message block are passed into the hashing function. This function hashes each 16 bit block as they are passed in and a number of steps are undertake as defined in section 3.4 [(MD5 Documentation)](https://tools.ietf.org/html/rfc1321). 
+* Step 1 - Copy the block to a new 32 bit array W[].
+* Step 2 – Copy initial hash values to variable A B C D
+* Step 3 – Undertake 4 rounds of 16 transforms, 64 in total using a formula specific to each round. Below is the formula for round 1 along with what each value means.
+
+`a = b + ((a + F(b,c,d) + X[k] + T[i]) <<< s)`
+
+**a, b, c, d** – initial hash values.
+**X[k]** – message.
+**T[i]** – 1 of 64 hash values defined in standard.
+**s** – number of positions to shift left by.
+**F(b,c,d)** - 1 of 4 auxiliary functions (Seen below).
+
+In each round auxiliary functions F, G, H, I are used to provide bit operations on the three inputs.
+
+* F(X,Y,Z) = XY v not(X) Z
+* G(X,Y,Z) = XZ v Y not(Z)
+* H(X,Y,Z) = X xor Y xor Z
+* I(X,Y,Z) = Y xor (X v not(Z))
+
+Once all transforms are applied append initial values onto A B C D.
+
+### Output
+When the message is hashed it is in big endian byte order, an initial check is done to check the architecture of the system. If it’s a little-endian machine the results is converted. If it’s big endian the result is just printed.
+
 More information on each of these steps above can be found in the Research & Development Diary section below.
 
 # Project Plan
 * Week 1 - Initial research and setup.
 * Week 2 - Setup Google Cloud VM and learn VI.
 * Week 3 - Write basic menu and file writing functions.
-* Week 4 - Start to implement the MD5 algorithm.
-* Week 5 - Continue implementation.
-* Week 6 - Continue implementation.
+* Week 4 - Start to implement the MD5 algorithm while continuing with videos.
+* Week 5 - Continue MD5 implementation.
+* Week 6 - Continue MD5 implementation.
 * Week 7 - Improve and test implementation.
-* Week 8 - Adding finishing touches, tidying up code, and adding extras.
+* Week 8 - Optimise solution.
+* Week 9 - Adding finishing touches, tidying up code, and adding extras.
 
 # Research & Development Diary
 
