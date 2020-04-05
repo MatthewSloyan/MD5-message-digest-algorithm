@@ -28,8 +28,25 @@ There are two ways to run the program, firstly it can be run quickly by using `.
 
 On all three options the user then has the option to print the result to a file. Presented is a menu with options 1 or 2. 1 is Yes and 2 is No. If yes is selected the user is given the option to enter the file name. This must include the file extension such as .txt. This file will be written to the current directory.
 
+### Test inputs
+A number of test values are supplied by the MD5 standard documentation [MD5 Documentation](https://tools.ietf.org/html/rfc1321), and are as follows. These can be entered into the string section or saved in a text file to be hashed. All these values are correct from testing.
+* ("") = d41d8cd98f00b204e9800998ecf8427e
+* ("a") = 0cc175b9c0f1b6a831c399e269772661
+* ("abc") = 900150983cd24fb0d6963f7d28e17f72
+* ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
+* ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
+* ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") = d174ab98d277d9f5a5611c2c9f419d9f
+* ("12345678901234567890123456789012345678901234567890123456789012345678901234567890") = 57edf4a22be3c955ac49da2e2107b67a
+
+Below you'll find two samples of the program running as described above. This shows entering a string to hash and entering a file from the command line to hash.
+![MD5 Example 1](https://i.imgur.com/axhMKFK.jpg)
+![MD5 Example 2](https://i.imgur.com/rM51PfS.jpg)
+
 # How it works
 More information on each of these steps above can be found in the Research & Development Diary section below.
+
+### What is the MD5 algorithm?
+MD5 is a hashing algorithm takes an input of any length and produces a 128-bit (4 x 32bit values) output or “message digest”. The MD5 algorithm is an extension of the MD4 message-digest algorithm however is slightly slower but more secure. However, the MD5 algorithm has been exploited and broken, so it is not advised for encryption purposes. It is still suitable for determining the partition for a key in a partitioned database [(MD5)]( https://en.wikipedia.org/wiki/MD5).
 
 ### Padding the message
 Padding is completed for each message block so that it is congruent to 448 bits, modulo 512 as defined in the MD5 standard [(MD5 Documentation)](https://tools.ietf.org/html/rfc1321). The message is extended to be 64 bits less than 512 bits. Padding is always performed even if the message is 448 bits, a full block of padding will be added after if this occurs. Padding is done by adding a “1” bit followed by any number of “0” bits until the padded message becomes 448 bits. 64 bits are then added to complete the message. These 64 bits are the length of the message before padding was added.
@@ -50,11 +67,11 @@ When the message is padded the initial hash values above and message block are p
 
 `a = b + ((a + F(b,c,d) + X[k] + T[i]) <<< s)`
 
-**a, b, c, d** – initial hash values.
-**X[k]** – message.
-**T[i]** – 1 of 64 hash values defined in standard.
-**s** – number of positions to shift left by.
-**F(b,c,d)** - 1 of 4 auxiliary functions (Seen below).
+* **a, b, c, d** – initial hash values.
+* **X[k]** – message.
+* **T[i]** – 1 of 64 hash values defined in standard.
+* **s** – number of positions to shift left by.
+* **F(b,c,d)** - 1 of 4 auxiliary functions (Seen below).
 
 In each round auxiliary functions F, G, H, I are used to provide bit operations on the three inputs.
 
@@ -132,7 +149,7 @@ After some more testing I realised the problem was due to the byte swapping I wa
 This week I continued working on the MD5 implementation. The program as is could take a file in a parameter and return the hash value of that file. I wanted to be able to also take in a string from the user and hash that, so I began implementing this. From research I found that reading bytes from a string can be done by getting the length using strlength() [(strlength)]( https://www.programiz.com/c-programming/library-function/string.h/strlen) and then looping through each byte and copy it to M.eight[i] [(Bytes from string)](https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx). This is slightly different when reading in the bytes of a file and can be done in one step using fread and passing in the value of M.eight. To distinguish between the two ways, I added a 1 or 0 input into the method which is called by the menu system. There is now three ways to run the program. Firstly there is a quick way by running ./main <filename> which will instantly hash the file. Another way is to run ./main which displays a menu and gives the user two options (read from string or file).
 
 #### Final week
-On the final week I worked on getting the project ready for submission, adding final documentation and more comments. Another thing I looked at was optimising the code. One area where I focused on was improving the hashing method and removing the number of lines it took. My initial version had 64 function calls to hash each block, there isn’t a way to cut down the number of functions calls but as it’s a similar code I felt a loop could be developed to clean it up. I took what I already had and started testing different ideas. I needed a way to get the message value index which is certain multiples for each round. E.g. In round 2 it goes 1, 6, 11, 0, 5, 10 etc. I implemented some simple logic adapted from MD5 pseudocode which solved this [(MD5 Pseudocode)](https://en.wikipedia.org/wiki/MD5). With this worked I needed to change my inline transform functions. I modified them to create one single inline function that would work for all rounds. The last step was to work out how to send a b c and d into this function as for every four iterations the values need to be shifted right once. To achieve this, I added a series of modulus statements such as i % 4 == 0, I % 4 == 1 etc. This cut down the code significantly and improved the code readability. I also made improvements to where the bytes where read in removing it from the padding and into the startMD5 function. This cleaned up the padding functions and it’s parameters.
+On the final week I worked on getting the project ready for submission, adding final documentation and more comments. Another thing I looked at was optimising the code. One area where I focused on was improving the hashing method and removing the number of lines it took. My initial version had 64 function calls to hash each block, there isn’t a way to cut down the number of functions calls but as it’s a similar code I felt a loop could be developed to clean it up. I took what I already had and started testing different ideas. I needed a way to get the message value index which is certain multiples for each round. E.g. In round 2 it goes 1, 6, 11, 0, 5, 10 etc. I implemented some simple logic adapted from MD5 pseudocode which solved this [(MD5 Pseudocode)](https://en.wikipedia.org/wiki/MD5). With this worked I needed to change my inline transform functions. I modified them to create one single inline function that would work for all rounds. The last step was to work out how to send a b c and d into this function as for every four iterations the values need to be shifted right once. To achieve this, I added a series of modulus statements such as i % 4 == 0, I % 4 == 1 etc. This cut down the code significantly and improved the code readability. I also made improvements to where the bytes where read in removing it from the padding and into the startMD5 function. This cleaned up the padding functions and it’s parameters. Lastly I implemented the ability to print the hash result to a file, so it could be saved and compared at a later date.
  
 #### Conclusion
 Overall, I am very happy with how the project turned out, and it has been an extremely good learning experience. It was interesting working on a lower level than usual, which is something that will help me in my career. I have also learned a lot more about C, the compiler, little/big endian, bytes/bits and hashing algorithms amongst others.
@@ -156,4 +173,8 @@ https://www.youtube.com/watch?v=HMpB28l1sLc
 * Bytes from string - https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx
 * MD5 Pseudocode - https://en.wikipedia.org/wiki/MD5
 * SHA 256 algorithm provided by lecturer: https://github.com/ianmcloughlin/sha256
-
+* Check Endianness - https://helloacm.com/how-to-find-out-whether-a-machine-is-big-endian-or-little-endian-in-cc/
+* MD5 (how it works) - https://www.slideshare.net/sourav777/sourav-md5
+* MD5 Wiki - https://en.wikipedia.org/wiki/MD5
+* Read file for writing - https://www.tutorialspoint.com/cprogramming/c_file_io.htm
+* Read string into memory - https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx
