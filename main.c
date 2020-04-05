@@ -189,9 +189,10 @@ void hashBlock(WORD *M, WORD *H)
 // *nobits - the length of the initial message to be appended to 448 bit block.
 // *status - current status of padding.
 // Adapted from videos supplied: https://github.com/ianmcloughlin/sha256
-int padBlock(union block *M, size_t bytesread, uint64_t *nobits, enum flag *status)
+int padBlock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum flag *status, int userOption)
 {
   unsigned int i = 0;
+  size_t bytesread;
 
   // PAD0 = Doesn't have enough space to do all padding. Pad rest with 0's
   // PAD1 = Read to end block perfectly, E.g 512 bits + padding. 1 bit + 450 0 bits.
@@ -215,6 +216,24 @@ int padBlock(union block *M, size_t bytesread, uint64_t *nobits, enum flag *stat
     *status = FINISH;
     break;
   default:
+    // Check if file or string input.
+    if (userOption == 0){
+      // Try to read 64 bytes from the file.
+      bytesread = fread(M->eight, 1, 64, infile);
+    }
+    else {
+      // Otherwise get the bytes from the file using the length.
+      // Code adapted from: https://www.programiz.com/c-programming/library-function/string.h/strlen
+      bytesread = (size_t) strlen(str);
+
+      i = 0;
+      // Loop through string and copy into block.
+      //Code adapted from: https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx
+      while(str[i] != '\0')
+      {
+        M->eight[i++] = (uint8_t) str[i];
+      }
+    }
     // Get lenght of the inital message, to be appending to final block.
     *nobits += (8ULL * ((uint64_t)bytesread));
 
@@ -400,37 +419,13 @@ int startMD5(FILE *infile, char *str, unsigned int userOption)
   union block M;
   uint64_t nobits = 0;
   enum flag status = READ;
-  size_t bytesread;
 
   // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
   WORD H[] = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476};
 
-  // Set type depending on menu input.
-  // 0 = Reading from a file.
-  // 1 = Reading from a string.
-  if (userOption == 0)
-  {
-    // Try to read 64 bytes from the file.
-    bytesread = fread(M.eight, 1, 64, infile);
-  }
-  else
-  {
-    // Otherwise get the bytes from the file using the length.
-    // Code adapted from: https://www.programiz.com/c-programming/library-function/string.h/strlen
-    bytesread = (size_t)strlen(str);
-
-    unsigned int i = 0;
-    // Loop through string and copy into block.
-    //Code adapted from: https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx
-    while (str[i] != '\0')
-    {
-      M.eight[i++] = (uint8_t)str[i];
-    }
-  }
-
   // == PADDING & HASHING ==
   // Read through all the padded message blocks.
-  while (padBlock(&M, bytesread, &nobits, &status))
+  while (padBlock(&M, infile, str, &nobits, &status, userOption))
   {
     // Calculate the next hash value.
     // Pass memory address of M and H.
@@ -527,3 +522,4 @@ int main(int argc, char *argv[])
   fclose(infile);
   return 0;
 }
+
