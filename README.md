@@ -20,7 +20,7 @@ Coded and tested on a Linux Debian 10 (buster) Google Cloud Virtual Machine. All
 # User Guide
 Below you’ll find a basic guide to the user interface, in the “How it works” section is a description of how this works in the code behind.
 
-There are two ways to run the program, firstly it can be run quickly by using `./main test.txt` to get a hash result on the file passed in as a parameter (test.txt). To run the full program with a UI, enter `./main` and a menu will be presented with options 1, 2 or 0 which are described below.
+There are two ways to run the program, firstly it can be run quickly by using `./main test.txt` to get a hash result on the file passed in as a parameter (test.txt). To run the full program with a UI, enter `./main` and a menu will be presented with options 1, 2 or 0 which are described below. This menu loops until 0 is entered to allow the user to hash multiple files or strings.
 
 * 1 – Allows the user to enter a string to hash. A prompt will be displayed to input a string. Once entered the program will hash the string and return the hash to the user.
 * 2 – Allows the user to enter a file to hash. A prompt will be displayed to input a file path to a chosen file E.g `TestCode/test.txt`. Once entered and the file is found the program will hash the file and return the result to the user.
@@ -39,6 +39,8 @@ A number of test values are supplied by the MD5 standard documentation [MD5 Docu
 * ("12345678901234567890123456789012345678901234567890123456789012345678901234567890") = 57edf4a22be3c955ac49da2e2107b67a
 
 Below you'll find two samples of the program running as described above. This shows entering a string to hash and entering a file from the command line to hash.
+
+
 ![MD5 Example 1](https://i.imgur.com/axhMKFK.jpg)
 ![MD5 Example 2](https://i.imgur.com/rM51PfS.jpg)
 
@@ -62,8 +64,9 @@ Before the hashing takes place an initial four-word buffer must be initialised (
 
 When the message is padded the initial hash values above and message block are passed into the hashing function. This function hashes each 16 bit block as they are passed in and a number of steps are undertake as defined in section 3.4 [(MD5 Documentation)](https://tools.ietf.org/html/rfc1321). 
 * Step 1 - Copy the block to a new 32 bit array W[].
-* Step 2 – Copy initial hash values to variable A B C D
-* Step 3 – Undertake 4 rounds of 16 transforms, 64 in total using a formula specific to each round. Below is the formula for round 1 along with what each value means.
+* Step 2 – Copy initial hash values to variable a b c and d.
+* Step 3 – Undertake 4 rounds of 16 transforms, 64 in total using a formula specific to each round. Below is the formula for round 1 along with what each value means. I initially had a line for each transform but I modified it to be completed in one loop to make the solution easier to understand. More details of this work can be found in the Research & Development Diary section.
+* Step 4 - Add a b c and d to initial hash values H[].
 
 `a = b + ((a + F(b,c,d) + X[k] + T[i]) <<< s)`
 
@@ -84,6 +87,8 @@ Once all transforms are applied append initial values onto A B C D.
 
 ### Output
 When the message is hashed it is in big endian byte order, an initial check is done to check the architecture of the system. If it’s a little-endian machine the results is converted. If it’s big endian the result is just printed.
+
+After each output the user is given the option to print the hash to a file to be used and compared later. This works by passing the file pointer to [(fprintf)](https://www.tutorialspoint.com/c_standard_library/c_function_fprintf.htm), and using the same method to print to screen but instead it prints to a file. The menu loop then continues until 0 is entered.
 
 More information on each of these steps above can be found in the Research & Development Diary section below.
 
@@ -170,6 +175,7 @@ https://www.youtube.com/watch?v=HMpB28l1sLc
 * Endianness - https://en.wikipedia.org/wiki/Endianness
 * Big Endian to Little Endian - https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
 * strlength - https://www.programiz.com/c-programming/library-function/string.h/strlen
+* fprintf - https://www.tutorialspoint.com/c_standard_library/c_function_fprintf.htm
 * Bytes from string - https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx
 * MD5 Pseudocode - https://en.wikipedia.org/wiki/MD5
 * SHA 256 algorithm provided by lecturer: https://github.com/ianmcloughlin/sha256
