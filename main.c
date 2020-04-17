@@ -11,6 +11,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <unistd.h>
 
 // Preprocessor variables.
 #define WORD uint32_t
@@ -451,28 +454,43 @@ int main(int argc, char *argv[])
   // as hashing can be completed quickly without menu UI.
   if (argc >= 2)
   {
+    // Code adapted from: https://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html
+    int stringFlag = 0, fileFlag = 0;
+    char *cvalue = NULL;
     int option;
-    // https://www.tutorialspoint.com/getopt-function-in-c-to-parse-command-line-arguments
-    // put ':' at the starting of the string so compiler can distinguish between '?' and ':'
-    while((option = getopt(argc, argv, ":if:lrx")) != -1){ //get option from the getopt() method
-      switch(option){
-        //For option i, r, l, print that these are options
-        case 'i':
-        case 'l':
-        case 'r':
-            printf("Given Option: %c\n", option);
-            break;
-        case 'f': //here f is used for some file name
-            printf("Given File: %s\n", optarg);
-            break;
-        case ':':
-            printf("option needs a value\n");
-            break;
-        case '?': //used for some unknown options
-            printf("unknown option: %c\n", optopt);
-            break;
+
+    opterr = 0;
+
+    while ((option = getopt (argc, argv, "sfx:")) != -1){
+      switch (option)
+      {
+      case 's':
+        aflag = 1;
+        break;
+      case 'f':
+        bflag = 1;
+        break;
+      case 'x':
+        cvalue = optarg;
+        break;
+      case '?':
+        if (optopt == 'x')
+          fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+        else if (isprint (optopt))
+          fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+        else
+          fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+        return 1;
+      default:
+        exit(EXIT_FAILURE); `     
       }
     }
+    printf ("aflag = %d, bflag = %d, cvalue = %s\n", aflag, bflag, cvalue);
+
+    for (int index = optind; index < argc; index++)
+      printf ("Non-option argument %s\n", argv[index]);
+    return 0;   
+  
     // infile = fopen(argv[1], "rb");
 
     // if (!infile)
