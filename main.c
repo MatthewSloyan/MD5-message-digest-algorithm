@@ -496,13 +496,14 @@ int main(int argc, char *argv[])
   FILE *infile;
   char str[] = "";
 
+  int c;
+  unsigned int fFlag = 0, sFlag = 0, tFlag = 0;
+  char fileToHash[256] = "", stringToHash[256] = "";
+
   // Check if there's input from the comand line,
   // as hashing can be completed quickly without menu UI.
   if (argc >= 2)
   {
-    int c;
-    unsigned int fFlag = 0, sFlag = 0, tFlag = 0;
-
     // Code adapted from: https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html   
     while (1)
     {
@@ -533,21 +534,23 @@ int main(int argc, char *argv[])
           break;
 
         case 'h':         
-          displayHelp();          
+          displayHelp();     
           break;
 
         case 'v':
-          displayVersion(); 
+          displayVersion();
           break;
 
         case 's':
           sFlag = 1;
-          printf ("option -s with value `%s'\n", optarg);
+          strcpy (stringToHash, optarg);
+          //printf ("option -s with value `%s'\n", optarg);
           break;
 
         case 'f':
           fFlag = 1;
-          printf ("option -f with value `%s'\n", optarg);
+          strcpy (fileToHash, optarg);
+          //printf ("option -f with value `%s'\n", optarg);
           break;
 
         case '?':
@@ -560,8 +563,24 @@ int main(int argc, char *argv[])
     }
 
     // Check flags.
-    if (){
+    if (sFlag == 1){
+      printf ("option value %s \n", stringToHash);
 
+      if (tFlag == 1){
+        // Hash string and test result.
+      }
+    }
+    else if (fFlag == 1){
+      printf ("option value %s \n", fileToHash);
+ 
+      if (tFlag == 1){
+        // Hash file and test result.
+      }
+    }
+    else if (tFlag == 1){
+      printf ("option value: Tests \n");
+
+      // Just print tests
     }
 
     // Instead of reporting ‘--verbose’and ‘--brief’ as they are encountered,
@@ -633,7 +652,7 @@ int main(int argc, char *argv[])
 
         if (!infile)
         {
-          printf("Error: couldn't open file %s. \n", argv[1]);
+          printf("Error: couldn't open file %s.\n");
           return 1;
         }
 
