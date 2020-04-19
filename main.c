@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <getopt.h>
 
 // Preprocessor variables.
 #define WORD uint32_t
@@ -102,6 +103,26 @@ union block {
   uint64_t sixtyfour[8];
   uint32_t thirtytwo[16];
   uint8_t eight[64];
+};
+
+// Flag set by ‘--verbose’.
+static int verbose_flag;
+
+// Options used by getops_options.
+// Code adapted from: https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
+static struct option long_options[] =
+{
+ // These options set a flag. */
+ {"verbose", no_argument,       &verbose_flag, 1},
+ {"brief",   no_argument,       &verbose_flag, 0},
+ // These options don’t set a flag.
+ // We distinguish them by their indices.
+ {"test",    no_argument,       0, 't'},
+ {"help",    no_argument,       0, 'h'},
+ {"version", no_argument,       0, 'v'},
+ {"string",  required_argument, 0, 's'},
+ {"file",    required_argument, 0, 'f'},
+ {0, 0, 0, 0}
 };
 
 // === Hashing ===
@@ -224,7 +245,7 @@ int padBlock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum fla
       // Try to read 64 bytes from the file.
       bytesread = fread(M->eight, 1, 64, infile);
     }
-    else {
+    else {  
       // Otherwise get the bytes from the file using the length.
       // Code adapted from: https://www.programiz.com/c-programming/library-function/string.h/strlen
       bytesread = (size_t) strlen(str);
@@ -410,6 +431,24 @@ void menuSystem(unsigned int *userOption)
   } while (*userOption < 0 || *userOption > 2); //validation to allow only numbers between 0 and 2
 }
 
+// == HELP Display ==
+void displayHelp()
+{
+  printf("Below is some of the useful features of the application and how to run them.\n\n");
+
+  printf("Hash file:            ./main.c --file/-f filename.txt\n");
+  printf("Hash string:          ./main.c --string/-s filename.txt\n");
+  printf("Run sample tests:     ./main.c --test/-s\n");
+  printf("Run tests on file:    ./main.c --file/-f filename.txt --test/-t\n");
+  printf("Run tests on string:  ./main.c --string/-s filename.txt --test/-t\n");
+  printf("Run UI:               ./main.c\n");
+  printf("Get help::            ./main.c --help/-h\n");
+  printf("Check version:        ./main.c --version/-v\n");
+
+  printf("\nAll the above command parameters can be shortened using just the first letter with -.\n");
+  printf("E.g (--file/-f, --string/-s, --help/h, --version/v, --test/-t.)\n");
+}
+
 // == MD5 Runner ==
 // MD5 method which controls, hashing and printing final hash values.
 // Can take in string or file values.
@@ -454,43 +493,77 @@ int main(int argc, char *argv[])
   // as hashing can be completed quickly without menu UI.
   if (argc >= 2)
   {
-    // Code adapted from: https://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html
-    int stringFlag = 0, fileFlag = 0;
-    char *cvalue = NULL;
-    int option;
+    int c;
 
-    opterr = 0;
+    // Code adapted from: https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html   
+    while (1)
+    {
+      /* getopt_long stores the option index here. */
+      int option_index = 0;
 
-    while ((option = getopt (argc, argv, "sfx:")) != -1){
-      switch (option)
+      c = getopt_long (argc, argv, "thvs:f:", long_options, &option_index);
+
+      /* Detect the end of the options. */
+      if (c == -1)
+        break;
+
+      switch (c)
       {
-      case 's':
-        aflag = 1;
-        break;
-      case 'f':
-        bflag = 1;
-        break;
-      case 'x':
-        cvalue = optarg;
-        break;
-      case '?':
-        if (optopt == 'x')
-          fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-        else if (isprint (optopt))
-          fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-        else
-          fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
-        return 1;
-      default:
-        exit(EXIT_FAILURE); `     
-      }
-    }
-    printf ("aflag = %d, bflag = %d, cvalue = %s\n", aflag, bflag, cvalue);
+        case 0:
+          /* If this option set a flag, do nothing else now. */
+          if (long_options[option_index].flag != 0)
+            break;
+          printf ("option %s", long_options[option_index].name);
+          if (optarg)
+            printf (" with arg %s", optarg);
+          printf ("\n");
+          break;
 
-    for (int index = optind; index < argc; index++)
-      printf ("Non-option argument %s\n", argv[index]);
-    return 0;   
-  
+        case 't':
+          puts ("option -t\n");
+          break;
+
+        case 'h':         
+          displayHelp();          
+          break;
+
+        case 'v':
+          puts ("option -v\n");
+          break;
+
+        case 's':
+          printf ("option -s with value `%s'\n", optarg);
+          break;
+
+        case 'f':
+          printf ("option -f with value `%s'\n", optarg);
+          break;
+
+        case '?':
+          /* getopt_long already printed an error message. */
+          break;
+
+        default:
+          abort ();
+       }
+    }
+
+    /* Instead of reporting ‘--verbose’
+     and ‘--brief’ as they are encountered,
+     we report the final status resulting from them. */
+    if (verbose_flag)
+      puts ("verbose flag is set");
+
+    /* Print any remaining command line arguments (not options). */
+    if (optind < argc)
+    {
+      printf ("non-option ARGV-elements: ");
+      while (optind < argc)
+        printf ("%s ", argv[optind++]);
+      putchar ('\n');
+    } 
+
+    exit (0);
     // infile = fopen(argv[1], "rb");
 
     // if (!infile)

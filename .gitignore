@@ -8,6 +8,7 @@ endian
 main
 empty
 test
+getops
 test.txt
 
 # Byte-compiled / optimized / DLL files
