@@ -125,6 +125,9 @@ static struct option long_options[] =
  {0, 0, 0, 0}
 };
 
+// Global variable used to determine if little or big endian machine.
+unsigned int order;
+
 // === Hashing ===
 // Function that hashes each 16 bit block,
 // Using steps defined in section 3.4: https://tools.ietf.org/html/rfc1321
@@ -211,7 +214,7 @@ void hashBlock(WORD *M, WORD *H)
 // block *M - pointer to message block
 // bytesread - the number of bytes read in from file or string.
 // *nobits - the length of the initial message to be appended to 448 bit block.
-// *status - current status of padding.
+// *status - current status of padding. 
 // Adapted from videos supplied: https://github.com/ianmcloughlin/sha256
 int padBlock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum flag *status, int userOption)
 {
@@ -459,18 +462,12 @@ void displayVersion()
 // == MD5 Runner ==
 // MD5 method which controls, hashing and printing final hash values.
 // Can take in string or file values.
-int startMD5(FILE *infile, char *str, unsigned int userOption)
-{
-  // Test wheter were on little or big endian machine.
-  int order = checkByteOrder();
-
+void startMD5(WORD *H, FILE *infile, char *str, unsigned int userOption)
+{ 
   // The current padded message block.
   union block M;
   uint64_t nobits = 0;
   enum flag status = READ;
-
-  // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
-  WORD H[] = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476};
 
   // == PADDING & HASHING ==
   // Read through all the padded message blocks.
@@ -482,10 +479,7 @@ int startMD5(FILE *infile, char *str, unsigned int userOption)
   }
 
   // Print the result to screen depending on architecture.
-  printToScreen(H, order);
-
-  // Ask the user if they would like to print result to file.
-  printToFile(H, order);
+  printToScreen(H, order);  
 }
 
 // == main == 
@@ -495,10 +489,16 @@ int main(int argc, char *argv[])
 {
   FILE *infile;
   char str[] = "";
-
   int c;
   unsigned int fFlag = 0, sFlag = 0, tFlag = 0;
   char fileToHash[256] = "", stringToHash[256] = "";
+
+  // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
+  WORD H[] = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476};
+
+  // Test wheter were on little or big endian machine.
+  // Stored as global variable as it's never edited.
+  order = checkByteOrder();
 
   // Check if there's input from the comand line,
   // as hashing can be completed quickly without menu UI.
@@ -600,7 +600,7 @@ int main(int argc, char *argv[])
     exit (0);
     // infile = fopen(argv[1], "rb");
 
-    // if (!infile)
+    // if (!infile):
     // {
     //   printf("Error: couldn't open file %s. \n", argv[1]);
     //   return 1;
@@ -642,7 +642,10 @@ int main(int argc, char *argv[])
         printf("\nInput String: %s \n", userString);
 
         // Start hashing the string. 1 = string.
-        startMD5(infile, userString, 1);
+        startMD5(H, infile, userString, 1);
+
+        // Ask the user if they would like to print result to file.
+        printToFile(H, order);
         break;
       case 2:
         printf("\nPlease enter the file path of the file to hash: ");
@@ -657,7 +660,10 @@ int main(int argc, char *argv[])
         }
 
         // Start hashing the file. 0 = file.
-        startMD5(infile, userString, 0);
+        startMD5(H, infile, userString, 0);
+
+        // Ask the user if they would like to print result to file.
+        printToFile(H, order);
         break;
       default:
         printf("Invalid option\n");
