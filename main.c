@@ -562,17 +562,25 @@ int main(int argc, char *argv[])
        }
     }
 
-    // Check flags.
-    if (sFlag == 1){
-      printf ("option value %s \n", stringToHash);
+    // Check flags (If string, if file, if just tests).
+    if (sFlag == 1){      
+      startMD5(H, infile, stringToHash, 1);
 
       if (tFlag == 1){
         // Hash string and test result.
       }
     }
-    else if (fFlag == 1){
-      printf ("option value %s \n", fileToHash);
- 
+    else if (fFlag == 1){     
+      infile = fopen(fileToHash, "rb");
+
+      if (!infile)
+      {
+         printf("Error: couldn't open file %s. \n", fileToHash);
+         return 1;
+      }
+
+      startMD5(H, infile, str, 0);
+
       if (tFlag == 1){
         // Hash file and test result.
       }
@@ -598,19 +606,6 @@ int main(int argc, char *argv[])
     } 
 
     exit (0);
-    // infile = fopen(argv[1], "rb");
-
-    // if (!infile):
-    // {
-    //   printf("Error: couldn't open file %s. \n", argv[1]);
-    //   return 1;
-    // }
-    // else {
-    //   // Start hashing the file. 0 = file.
-    //   // Uses same function in menu also (DRY)
-    //   startMD5(infile, str, 0);
-    // }
-    
   }
   else
   {
