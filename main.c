@@ -434,6 +434,40 @@ void menuSystem(unsigned int *userOption)
   } while (*userOption < 0 || *userOption > 2); //validation to allow only numbers between 0 and 2
 }
 
+// These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
+void initialiseHash(WORD *H)
+{
+  H[0] = 0x67452301;
+  H[1] = 0xefcdab89;
+  H[2] = 0x98badcfe;
+  H[3] = 0x10325476;
+}
+
+// == MD5 Runner ==
+// MD5 method which controls, hashing and printing final hash values.
+// Can take in string or file values.
+void startMD5(WORD *H, FILE *infile, char *str, unsigned int userOption)
+{ 
+  // The current padded message block.
+  union block M;
+  uint64_t nobits = 0;
+  enum flag status = READ;
+
+  initialiseHash(H);
+
+  // == PADDING & HASHING ==
+  // Read through all the padded message blocks.
+  while (padBlock(&M, infile, str, &nobits, &status, userOption))
+  {
+    // Calculate the next hash value.
+    // Pass memory address of M and H.
+    hashBlock(M.thirtytwo, H);
+  }
+
+  // Print the result to screen depending on architecture.
+  printToScreen(H, order);  
+}
+
 // == HELP Display ==
 void displayHelp()
 {
@@ -459,27 +493,30 @@ void displayVersion()
   printf("\nDEVELOPER:  Matthew Sloyan\n\n");
 }
 
-// == MD5 Runner ==
-// MD5 method which controls, hashing and printing final hash values.
-// Can take in string or file values.
-void startMD5(WORD *H, FILE *infile, char *str, unsigned int userOption)
-{ 
-  // The current padded message block.
-  union block M;
-  uint64_t nobits = 0;
-  enum flag status = READ;
+// == Tests ==
+// Run predefined tests.
+void runTests(WORD *H)
+{
+  FILE *file;
+  char arr[6][128] = {
+    "", "a", "abc", "message digest", "abcdefghijklmnopqrstuvwxyz",
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" 
+  };
 
-  // == PADDING & HASHING ==
-  // Read through all the padded message blocks.
-  while (padBlock(&M, infile, str, &nobits, &status, userOption))
+  for (int i = 0; i < 6; i++)
   {
-    // Calculate the next hash value.
-    // Pass memory address of M and H.
-    hashBlock(M.thirtytwo, H);
+    printf("Value: %s ", arr[i]);
+    printf("\n");
+
+    // Run startMD5 with string option.
+    startMD5(H, file, arr[i], 1);
+    
+    // Compare against OpenSSL MD5
+
+    printf("\n\n");
   }
 
-  // Print the result to screen depending on architecture.
-  printToScreen(H, order);  
+  exit (0);
 }
 
 // == main == 
@@ -488,13 +525,13 @@ void startMD5(WORD *H, FILE *infile, char *str, unsigned int userOption)
 int main(int argc, char *argv[])
 {
   FILE *infile;
-  char str[] = "";
   int c;
   unsigned int fFlag = 0, sFlag = 0, tFlag = 0;
   char fileToHash[256] = "", stringToHash[256] = "";
 
   // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
-  WORD H[] = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476};
+  // Will be initialised each time in each startMD5 method call.
+  WORD H[4];
 
   // Test wheter were on little or big endian machine.
   // Stored as global variable as it's never edited.
@@ -579,7 +616,7 @@ int main(int argc, char *argv[])
          return 1;
       }
 
-      startMD5(H, infile, str, 0);
+      startMD5(H, infile, stringToHash, 0);
 
       if (tFlag == 1){
         // Hash file and test result.
@@ -589,6 +626,7 @@ int main(int argc, char *argv[])
       printf ("option value: Tests \n");
 
       // Just print tests
+      runTests(H);
     }
 
     // Instead of reporting ‘--verbose’and ‘--brief’ as they are encountered,
