@@ -494,13 +494,30 @@ void displayVersion()
 }
 
 // == Tests ==
-void runSpecificTest(WORD *H, char *str)
+void runSpecificTest(WORD *H, char *fileName, char *str, unsigned int userOption)
 {
   unsigned char result[16];
  
-  // Run MD5 algorithm using openSSL for comparision.
-  MD5(str, strlen(str), result);
+  if (userOption == 0){
 
+    //char* buffer = NULL;
+    //size_t len;
+    //ssize_t bytes_read = getdelim( &buffer, &len, '\0', file);
+    
+    //if ( bytes_read != -1)
+      //MD5(buffer, strlen(buffer), result);
+
+    char buffer[256]; 
+    FILE *fp = fopen(fileName, "r");
+    while (fgets(buffer, sizeof(buffer), fp)){}
+
+    MD5(buffer, strlen(buffer), result);
+  }
+  else {
+    MD5(str, strlen(str), result);
+  }
+  // Run MD5 algorithm using openSSL for comparision.
+  
   printf("OpenSSL: ");
  
   // output
@@ -537,7 +554,7 @@ void runTests(WORD *H)
     startMD5(H, file, arr[i], 1);
     
     // Compare against OpenSSL MD5
-    runSpecificTest(H, arr[i]);
+    runSpecificTest(H, "", arr[i], 1);
 
     printf("\n");
   }
@@ -631,9 +648,11 @@ int main(int argc, char *argv[])
 
       if (tFlag == 1){
         // Hash string and test result.
+        runSpecificTest(H, "", stringToHash, 1);
       }
     }
-    else if (fFlag == 1){     
+    else if (fFlag == 1){
+      // Read in file and hash.
       infile = fopen(fileToHash, "rb");
 
       if (!infile)
@@ -642,10 +661,12 @@ int main(int argc, char *argv[])
          return 1;
       }
 
-      startMD5(H, infile, stringToHash, 0);
+      startMD5(H, infile, "", 0);
 
       if (tFlag == 1){
         // Hash file and test result.
+        runSpecificTest(H, fileToHash, "", 0);
+        printf ("Please note: Specific tests can only be run with .txt files or files.\n");
       }
     }
     else if (tFlag == 1){
@@ -736,4 +757,4 @@ int main(int argc, char *argv[])
   fclose(infile);
   return 0;
 }
-
+ 
