@@ -13,8 +13,8 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <ctype.h>
-#include <unistd.h>
-#include <getopt.h>
+#include <getopt.h> // Get command line parameters.
+#include <openssl/md5.h> // Used to check if algorithm results are correct in test methods.
 
 // Preprocessor variables.
 #define WORD uint32_t
@@ -314,7 +314,7 @@ int checkByteOrder()
 // Print hash result to file.
 void printToScreen(WORD *H, int order)
 {
-  printf("Hash: ");
+  printf("Hash: \t ");
 
   // Print final result in either little or big endian depending on check at the start.
   if (order == 1)
@@ -494,6 +494,31 @@ void displayVersion()
 }
 
 // == Tests ==
+void runSpecificTest(WORD *H, char *str)
+{
+  unsigned char result[16];
+ 
+  // Run MD5 algorithm using openSSL for comparision.
+  MD5(str, strlen(str), result);
+
+  printf("OpenSSL: ");
+ 
+  // output
+  for(int i = 0; i < 16; i++){
+    printf("%02x", result[i]);
+  }
+
+  // Display result in little endian.
+  // Code adapted from: https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
+  // for (int i = 0; i < 4; i++)
+  // {
+  //   printf("%02x%02x%02x%02x", (H[i] >> 0) & 0x000000ff, (H[i] >> 8) & 0x000000ff,
+  //           (H[i] >> 16) & 0x000000ff, (H[i] >> 24) & 0x000000ff);
+  // }
+  
+  printf("\n");
+}
+
 // Run predefined tests.
 void runTests(WORD *H)
 {
@@ -505,15 +530,16 @@ void runTests(WORD *H)
 
   for (int i = 0; i < 6; i++)
   {
-    printf("Value: %s ", arr[i]);
+    printf("Value:   %s", arr[i]);
     printf("\n");
 
     // Run startMD5 with string option.
     startMD5(H, file, arr[i], 1);
     
     // Compare against OpenSSL MD5
+    runSpecificTest(H, arr[i]);
 
-    printf("\n\n");
+    printf("\n");
   }
 
   exit (0);
