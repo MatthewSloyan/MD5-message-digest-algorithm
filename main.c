@@ -4,7 +4,6 @@
 //Github Link:
 //https://github.com/MatthewSloyan/MD5-message-digest-algorithm
 
-
 // Imports
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -107,16 +106,10 @@ union block {
   uint8_t eight[64];
 };
 
-// Flag set by ‘--verbose’.
-static int verbose_flag;
-
 // Options used by getops_options.
 // Code adapted from: https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
 static struct option long_options[] =
 {
- // These options set a flag. */
- {"verbose", no_argument,       &verbose_flag, 1},
- {"brief",   no_argument,       &verbose_flag, 0},
  // These options don’t set a flag.
  // We distinguish them by their indices.
  {"test",    no_argument,       0, 't'},
@@ -148,10 +141,7 @@ void hashBlock(WORD *M, WORD *H)
   }
 
   // Assign initial values to temp variables in memory.
-  a = H[0];
-  b = H[1];
-  c = H[2];
-  d = H[3];
+  a = H[0];  b = H[1];  c = H[2];  d = H[3];
 
   // Loop for each step (4 rounds of 16 steps).
   for (i = 0; i < 64; i++)
@@ -171,7 +161,7 @@ void hashBlock(WORD *M, WORD *H)
       messageIndex = (5 * i + 1) % 16;
       round = 2;
     }
-    else if (i < 48)
+    else if (i < 48) 
     {
       messageIndex = (3 * i + 5) % 16;
       round = 3;
@@ -208,10 +198,7 @@ void hashBlock(WORD *M, WORD *H)
   }
 
   // Final step, add updated hash values to intial hash values.
-  H[0] += a;
-  H[1] += b;
-  H[2] += c;
-  H[3] += d;
+  H[0] += a;  H[1] += b;  H[2] += c;  H[3] += d;
 }
 
 // === Padding ===
@@ -477,17 +464,19 @@ void displayHelp()
 {
   printf("\nBelow is some of the useful features of the application and how to run them.\n\n");
 
-  printf("Hash file:            ./main.c --file/-f filename.txt\n");
-  printf("Hash string:          ./main.c --string/-s filename.txt\n");
-  printf("Run sample tests:     ./main.c --test/-s\n");
-  printf("Run tests on file:    ./main.c --file/-f filename.txt --test/-t\n");
-  printf("Run tests on string:  ./main.c --string/-s filename.txt --test/-t\n");
+  printf("Hash file:            ./main.c --file filename.txt\n");
+  printf("Hash string:          ./main.c --string \"abc\"\n");
+  printf("Run sample tests:     ./main.c --test\n");
+  printf("Run tests on file:    ./main.c --file filename.txt --test\n");
+  printf("Run tests on string:  ./main.c --string \"abc\" --test\n");
+  printf("Display clock time:   ./main.c --file filename.txt --clock\n");
+  printf("Print result to file: ./main.c --string \"abc\" --print\n");
+  printf("Get help:             ./main.c --help\n");
+  printf("Check version:        ./main.c --version\n");
   printf("Run UI:               ./main.c\n");
-  printf("Get help:             ./main.c --help/-h\n");
-  printf("Check version:        ./main.c --version/-v\n");
 
   printf("\nAll the above command parameters can be shortened using just the first letter with -.\n");
-  printf("E.g (--file/-f, --string/-s, --help/h, --version/v, --test/-t.)\n\n");
+  printf("E.g (--file/-f, --string/-s, --test/-t, --clock/-c, --print/-p, --help/-h, --version/-v)\n\n");
 }
 
 // == Display Version ==
@@ -512,47 +501,31 @@ void runSpecificTest(WORD *H, char *fileName, char *str, unsigned int userOption
   unsigned char result[16];
  
   if (userOption == 0){
-
-    //char* buffer = NULL;
-    //size_t len;
-    //ssize_t bytes_read = getdelim( &buffer, &len, '\0', file);
-    
-    //if ( bytes_read != -1)
-      //MD5(buffer, strlen(buffer), result);
-
+    // Read in contents from a file. Only works with .txt files.
+    // Code adapted from: https://stackoverflow.com/questions/174531/how-to-read-the-content-of-a-file-to-a-string-in-c
     char buffer[256]; 
     FILE *fp = fopen(fileName, "r");
     while (fgets(buffer, sizeof(buffer), fp)){}
 
+    // Run OpenSSL MD5 algorithm. It only works with strings.
     MD5(buffer, strlen(buffer), result);
   }
   else {
     MD5(str, strlen(str), result);
   }
-  // Run MD5 algorithm using openSSL for comparision.
-  
+
   printf("OpenSSL: ");
  
   // output
   for(int i = 0; i < 16; i++){
     printf("%02x", result[i]);
-  }
-
-  // Display result in little endian.
-  // Code adapted from: https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
-  // for (int i = 0; i < 4; i++)
-  // {
-  //   printf("%02x%02x%02x%02x", (H[i] >> 0) & 0x000000ff, (H[i] >> 8) & 0x000000ff,
-  //           (H[i] >> 16) & 0x000000ff, (H[i] >> 24) & 0x000000ff);
-  // }
-  
+  }  
   printf("\n");
 }
 
 // Run predefined tests.
 void runTests(WORD *H)
 {
-  FILE *file;
   char arr[6][128] = {
     "", "a", "abc", "message digest", "abcdefghijklmnopqrstuvwxyz",
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" 
@@ -564,15 +537,12 @@ void runTests(WORD *H)
     printf("\n");
 
     // Run startMD5 with string option.
-    startMD5(H, file, arr[i], 1);
+    startMD5(H, NULL, arr[i], 1);
     
     // Compare against OpenSSL MD5
     runSpecificTest(H, "", arr[i], 1);
-
     printf("\n");
   }
-
-  exit (0);
 }
 
 // == main == 
@@ -597,30 +567,14 @@ int main(int argc, char *argv[])
   // as hashing can be completed quickly without menu UI.
   if (argc >= 2)
   {
+    // getopt_long stores the option index here.
+    int option_index = 0;
+
     // Code adapted from: https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html   
-    while (1)
-    {
-      // getopt_long stores the option index here.
-      int option_index = 0;
-
-      c = getopt_long (argc, argv, "hvtcps:f:", long_options, &option_index);
-
-      // Detect the end of the options.
-      if (c == -1)
-        break;
+    while ((c = getopt_long (argc, argv, "hvtcps:f:", long_options, &option_index)) != -1){
 
       switch (c)
       {
-        case 0:
-          // If this option set a flag, do nothing else now.
-          if (long_options[option_index].flag != 0)
-            break;
-          printf ("option %s", long_options[option_index].name);
-          
-          if (optarg)
-            printf (" with arg %s", optarg);
-          printf ("\n");
-          break;
         case 'h':         
           displayHelp(); // Display help information
           break;
@@ -690,26 +644,10 @@ int main(int argc, char *argv[])
       if (cFlag == 1)
         displayClockTime(start_t);
     }
-    else if (tFlag == 1){
-      printf ("option value: Tests \n");
-
+    else if (tFlag == 1){      
       // Just print tests
       runTests(H);
     }
-
-    // Instead of reporting ‘--verbose’and ‘--brief’ as they are encountered,
-    // we report the final status resulting from them. 
-    if (verbose_flag)
-      puts ("verbose flag is set");
-
-    // Print any remaining command line arguments (not options).
-    if (optind < argc)
-    {
-      printf ("non-option ARGV-elements: ");
-      while (optind < argc)
-        printf ("%s ", argv[optind++]);
-      putchar ('\n');
-    } 
 
     exit (0);
   }
@@ -717,10 +655,8 @@ int main(int argc, char *argv[])
   {
     //== MENU CODE ==
     unsigned int userOption = 0;
-
     char userString[256] = "";
     char fileString[256] = "";
-
     int i, j;
 
     printf("MD5 Hash Algorithm\n");
