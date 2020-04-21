@@ -4,6 +4,7 @@
 //Github Link:
 //https://github.com/MatthewSloyan/MD5-message-digest-algorithm
 
+
 // Imports
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -120,6 +121,8 @@ static struct option long_options[] =
  {"test",    no_argument,       0, 't'},
  {"help",    no_argument,       0, 'h'},
  {"version", no_argument,       0, 'v'},
+ {"running", no_argument,       0, 'r'},
+ {"print",   no_argument,       0, 'p'},
  {"string",  required_argument, 0, 's'},
  {"file",    required_argument, 0, 'f'},
  {0, 0, 0, 0}
@@ -569,7 +572,7 @@ int main(int argc, char *argv[])
 {
   FILE *infile;
   int c;
-  unsigned int fFlag = 0, sFlag = 0, tFlag = 0;
+  unsigned int fFlag = 0, sFlag = 0, tFlag = 0, pFlag = 0, rFlag = 0;
   char fileToHash[256] = "", stringToHash[256] = "";
 
   // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
@@ -608,35 +611,32 @@ int main(int argc, char *argv[])
             printf (" with arg %s", optarg);
           printf ("\n");
           break;
-
-        case 't':
-          tFlag = 1; 
-          break;
-
         case 'h':         
-          displayHelp();     
+          displayHelp(); // Display help information
           break;
-
         case 'v':
           displayVersion();
           break;
-
+        case 't':
+          tFlag = 1; 
+          break;
+        case 'p':
+          pFlag = 1; 
+          break;
+        case 'r':
+          rFlag = 1; 
+          break;
         case 's':
           sFlag = 1;
-          strcpy (stringToHash, optarg);
-          //printf ("option -s with value `%s'\n", optarg);
+          strcpy (stringToHash, optarg);          
           break;
-
         case 'f':
           fFlag = 1;
           strcpy (fileToHash, optarg);
-          //printf ("option -f with value `%s'\n", optarg);
           break;
-
         case '?':
           // getopt_long already printed an error message.
           break;
-
         default:
           abort ();
        }
@@ -646,10 +646,12 @@ int main(int argc, char *argv[])
     if (sFlag == 1){      
       startMD5(H, infile, stringToHash, 1);
 
-      if (tFlag == 1){
-        // Hash string and test result.
+      // Check if flags for running time, tests on string, and print to file.
+      // Check in here to ensure only run when file or string is present.
+      if (tFlag == 1)
         runSpecificTest(H, "", stringToHash, 1);
-      }
+      if (pFlag == 1)
+        printToFile(H, order);
     }
     else if (fFlag == 1){
       // Read in file and hash.
@@ -663,11 +665,13 @@ int main(int argc, char *argv[])
 
       startMD5(H, infile, "", 0);
 
+      // Check if flags for running time, tests on file, and print to file.
       if (tFlag == 1){
-        // Hash file and test result.
         runSpecificTest(H, fileToHash, "", 0);
         printf ("Please note: Specific tests can only be run with .txt files or files.\n");
       }
+      if (pFlag == 1)
+        printToFile(H, order);
     }
     else if (tFlag == 1){
       printf ("option value: Tests \n");
