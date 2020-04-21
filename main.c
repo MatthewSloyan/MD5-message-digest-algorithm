@@ -14,7 +14,8 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <ctype.h>
-#include <getopt.h> // Get command line parameters.
+#include <time.h> // Used to get clock time.
+#include <getopt.h> // Used to get command line parameters.
 #include <openssl/md5.h> // Used to check if algorithm results are correct in test methods.
 
 // Preprocessor variables.
@@ -121,7 +122,7 @@ static struct option long_options[] =
  {"test",    no_argument,       0, 't'},
  {"help",    no_argument,       0, 'h'},
  {"version", no_argument,       0, 'v'},
- {"running", no_argument,       0, 'r'},
+ {"clock",   no_argument,       0, 'c'},
  {"print",   no_argument,       0, 'p'},
  {"string",  required_argument, 0, 's'},
  {"file",    required_argument, 0, 'f'},
@@ -496,6 +497,15 @@ void displayVersion()
   printf("\nDEVELOPER:  Matthew Sloyan\n\n");
 }
 
+// == Display Clock Time ==
+void displayClockTime(clock_t start_t)
+{
+  // Code adapted from: https://www.tutorialspoint.com/c_standard_library/c_function_clock.htm
+  clock_t end_t = clock();
+  double total_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
+  printf("Time taking by CPU: %lf\n", total_t);
+}
+
 // == Tests ==
 void runSpecificTest(WORD *H, char *fileName, char *str, unsigned int userOption)
 {
@@ -572,7 +582,7 @@ int main(int argc, char *argv[])
 {
   FILE *infile;
   int c;
-  unsigned int fFlag = 0, sFlag = 0, tFlag = 0, pFlag = 0, rFlag = 0;
+  unsigned int fFlag = 0, sFlag = 0, tFlag = 0, pFlag = 0, cFlag = 0;
   char fileToHash[256] = "", stringToHash[256] = "";
 
   // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
@@ -593,7 +603,7 @@ int main(int argc, char *argv[])
       // getopt_long stores the option index here.
       int option_index = 0;
 
-      c = getopt_long (argc, argv, "thvs:f:", long_options, &option_index);
+      c = getopt_long (argc, argv, "hvtcps:f:", long_options, &option_index);
 
       // Detect the end of the options.
       if (c == -1)
@@ -620,11 +630,11 @@ int main(int argc, char *argv[])
         case 't':
           tFlag = 1; 
           break;
+        case 'c':
+          cFlag = 1; 
+          break;
         case 'p':
           pFlag = 1; 
-          break;
-        case 'r':
-          rFlag = 1; 
           break;
         case 's':
           sFlag = 1;
@@ -642,6 +652,9 @@ int main(int argc, char *argv[])
        }
     }
 
+    // Start clock time.
+    clock_t start_t = clock();
+
     // Check flags (If string, if file, if just tests).
     if (sFlag == 1){      
       startMD5(H, infile, stringToHash, 1);
@@ -652,6 +665,8 @@ int main(int argc, char *argv[])
         runSpecificTest(H, "", stringToHash, 1);
       if (pFlag == 1)
         printToFile(H, order);
+      if (cFlag == 1)
+        displayClockTime(start_t);
     }
     else if (fFlag == 1){
       // Read in file and hash.
@@ -672,6 +687,8 @@ int main(int argc, char *argv[])
       }
       if (pFlag == 1)
         printToFile(H, order);
+      if (cFlag == 1)
+        displayClockTime(start_t);
     }
     else if (tFlag == 1){
       printf ("option value: Tests \n");
