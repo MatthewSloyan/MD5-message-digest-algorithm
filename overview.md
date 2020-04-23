@@ -54,3 +54,56 @@ The menu UI contains all the customisable parameters described above automatical
 ### Samples
 Below are some sample images of the application running and the results returned. The first image is running the application through the command line. The string “abc” is hashed, it is tested with the OpenSSL standard and the clock time is displayed. The second image shows the UI where a file is hashed, and the result is printed to a file.
 
+## Test
+I lot of testing went into to the development process, as described in the developer diary section of the README. After every new feature or change I made I would run several hashing tests on both files and strings. I would then compare the results with the samples supplied in the MD5 standard. Once I had full testing suites implemented, I would run my results with the testing method I created which sped up the testing process.
+
+In the application I have implemented testing for the user to compare their result with the OpenSSL standard. This can be run two different ways. 
+* If `--test/-t` is added to the command line with either `--file/-f` or `--string/-s` the result is compared to the result from the official OpenSSL implementation. As the OpenSSL package can only work with character arrays (strings) I have added code to open a file and read it into a buffer. However, it can only read text files (.txt). 
+* If `--test/-t` is present on its own (`./main --test`) tests are run against predefined results from the MD5 standard and displayed to the user, with verification from the OpenSSL standard. These tests are laid out below.
+1. ("") = d41d8cd98f00b204e9800998ecf8427e
+2. ("a") = 0cc175b9c0f1b6a831c399e269772661
+3. ("abc") = 900150983cd24fb0d6963f7d28e17f72
+4. ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
+5. ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
+6. ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") = d174ab98d277d9f5a5611c2c9f419d9f
+
+## Algorithm
+As outlined in the MD5 standard documentation there is five steps to perform the algorithm. We will first look at these five steps and then step through the implementation of this algorithm in this repository.
+
+### MD5 Standard Algorithm
+#### Step 1: Append Padding Bits
+Padding is completed for each message block so that it is congruent to 448 bits, modulo 512 as defined in the MD5 standard [(MD5 Documentation)](https://tools.ietf.org/html/rfc1321). The message is extended to be 64 bits less than 512 bits. Padding is always performed even if the message is 448 bits, a full block of padding will be added after if this occurs. Padding is done by adding a “1” bit followed by any number of “0” bits until the padded message becomes 448 bits. 
+
+#### Step 2: Append Padding Bits
+64 bits are then added to complete the message from step 1. These 64 bits are the length of the message before padding bits were added. However, if this length is greater than 2^64, then only the low-order 64 bits are used. In this case the bits are added as two 32-bit words (low-order). The message is now 512 bits, which can be broken down into 16 32-bit words.
+
+#### Step 3: Initialize MD Buffer
+Before the hashing takes place an initial four-word buffer must be initialised (A, B, C and D) with the values below (low-order bytes first). These values will be updated and produce the final output.
+* Word A: 01 23 45 67
+* Word B: 89 ab cd ef
+* Word C: fe dc ba 98
+* Word D: 76 54 32 10
+
+#### Step 4: Process Message in 16-Word Blocks
+This is the most extensive step and contains the actual hashing. Initially four auxiliary functions must be defined which are described below. They are used to modify the bits accordingly and take in three 32-bit words and produce one 32-bit word.
+* F(X,Y,Z) = XY v not(X) Z
+* G(X,Y,Z) = XZ v Y not(Z)
+* H(X,Y,Z) = X xor Y xor Z
+* I(X,Y,Z) = Y xor (X v not(Z))
+
+The next step is to loop over each of the 16-word blocks in the message. Begin by looping over each of the 16-word blocks in the message, then applying the four steps below on each iteration.
+1. Copy the block to a new 32-bit array.
+2. Copy initial hash values to variable a b c and d.
+3. Undertake 4 rounds of 16 transforms, 64 in total using a formula specific to each round. Below is the formula for round 1 along with a description of what each value means. Values defined in the standard must be passed into each of these formulas for each round.
+Round 1 formula: `a = b + ((a + F(b,c,d) + X[k] + T[i]) <<< s)`
+* **a, b, c, d** – initial hash values.
+* **X[k]** – message.
+* **T[i]** – 1 of 64 hash values defined in standard.
+* **s** – number of positions to shift left by.
+* **F(b,c,d)** - 1 of 4 auxiliary functions.
+4. Add a b c and d to initial hash values A, B, C and D.
+
+#### Step 5: Output
+The message is completed (A, B, C, and D). It begins with low-order (little-endian) bytes and ends with high-order (big-endian) bytes.
+
+
