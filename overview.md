@@ -169,5 +169,25 @@ This round number is then passed into the TRANSFORM function which is shown belo
 #### Output
 When the message is hashed it is in big endian byte order, an initial check is done to check the architecture of the system. If it is a little-endian machine the results are converted. If the machine is big endian the result is just printed as the MD5 algorithm is completed using a big-endian byte order.
 
+## Complexity
+The MD5 hashing algorithm or message digest is a complex and efficient solution however it is not without its downsides especially regarding security. We will first have a look at what the MD5 algorithm is, the complexities of this algorithm, its uses and then some of its flaws.
+
+#### What is a message digest or hashing algorithm?
+A message digest or hashing algorithm is a one-way function. The state of the previous message is lost as part of a transform, and the output is drastically different from the input. The transform involves several steps defined by the algorithm and which usually includes bit shifting and other bit operations.
+Cryptographic hashing algorithms are used for number of reasons such as securely encrypting passwords, files, and personal details. They are used to encrypt personal data so they cannot be accessed by hackers or unauthorised users. Because of this it is a necessity that they are unbreakable. I.e. impossible to compute two messages that hash to the same value. 
+
+#### The history of MD5
+The MD5 algorithm was designed and developed by Ron Rivest in 1991, and it was released and outlined during April 1992 in RFC 1321. The MD5 algorithm was an improvement upon the MD4 algorithm, improvements included adding a fourth round and updating the auxiliary functions, so they were less symmetrical. It came at the cost of slightly slower running time, but it was more secure. In 1993, 1996 and 2004 successful attempts were made however to exploit its weaknesses and produce a collision. Because of these findings it was deemed an unsecure algorithm and it was recommended to use SHA-1 instead at that current time. 
+
+#### The complexities of the algorithm.
+This MD5 algorithm is highly complex in several ways. Firstly, it involves a multitude of steps and transforms which can be seen in the algorithms section. These four rounds of 64 transforms applied to each 512-bit message block changes the message drastically. One transform can change the whole message. Also, in the transform a property called the “avalanche effect” is used effectively. This property changes the output significantly from one small change. For example, if one bit is flipped, half the bits could be flipped. This adds significant efficiency and security to algorithms and is a desirable trait.
+
+The output is a 128-bit value or 4 x 32bit values. This provides 2^128 possible different hashes, which equates to 340,282,366,920,938,463,463,374,607,431,768,211,456 possible outcomes. Even though two messages could randomly hash to the same value it is very unlikely using the laws of probability. However even with its complexities unfortunately for the MD5 algorithm there have been number of successful attempts to engineer this scenario. We will look at this in detail along with some other methods of breaking hashes.
+
+#### How can the MD5 algorithm be reversed?
+Essentially a message digest is irreversible due to its nature. As a hash algorithm is a one-way function the initial state is lost and is transformed into a final output as mentioned above. A simple analogy for this is if you have a cow, then you convert it into a steak, would you be able to make it into a cow again? The answer is no, and hashing algorithms work in the same way.  However, hashing functions can be broken, or collisions can be found which we will now look at.
+
+##### Collisions
+A collision is referred to as two different messages that hash to the same value. E.g. `hash(m1) == hash(m2)`. This will be the focus as there has been several successful attempts at creating two different inputs that output to the same hash value using the MD5 algorithm.
 
 
