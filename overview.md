@@ -106,4 +106,68 @@ Round 1 formula: `a = b + ((a + F(b,c,d) + X[k] + T[i]) <<< s)`
 #### Step 5: Output
 The message is completed (A, B, C, and D). It begins with low-order (little-endian) bytes and ends with high-order (big-endian) bytes.
 
+### Implementation
+We will now step through the implementation in this repository and how the steps above were implemented.
+#### Padding and appending bits (Steps 1 & 2)
+Initially the message (file or string) in bytes is passed into the padding function. This is run in a while loop until the message has been fully padded (status returns FINISH). On each iteration the status is checked using a switch statement. The code for the padding was initially developed from the SHA256 algorithm provided by our lecturer but it was modified heavily.
+* If the status is DEFAULT first get the length of the initial message which will be appended at the end. The next step is to check if the bytes are less than 56, if so then the message can be padded in one block. A ‘1’ bit is added then a string of ‘0’ bits up till 56 bits. The 64-bit value is then added to complete the padding. This 64-bit value is the length of initial message. If the bytes read is between 56 and 64 then a new block of padding is needed, so it will pad with zeros. Again, add a ‘1’ bit to the start, pad till the end (64 bits) and set status to PAD0 for next iteration. This will add another block of padding after.
+* If the status is PAD0 then pad a full block with zeros and append the 64-bit message length to finish the padding and set status to FINISH. 
+* If the status is FINISH, then the padding is complete which will return 0 and complete the loop.
+
+#### Initialize MD Buffer (Step 3)
+The buffer is initialised at the start of each call of the `startMD5` method, using the values supplied in the documentation. The hexadecimal value ‘0x’ is added also.
+```
+void initialiseHash(WORD *H) {
+  H[0] = 0x67452301;
+  H[1] = 0xefcdab89;
+  H[2] = 0x98badcfe;
+  H[3] = 0x10325476;
+}
+```
+
+#### Hashing the message (Step 4)
+The loop outlined below hashes and pads the message. On each iteration the message is padded to be 512 bits which is passed into the hashBlock mehod. M.thirtytwo is the memory address of the message and H is the hash values to be updated (A, B, C, and D).
+```
+while (padBlock(&M, infile, str, &nobits, &status, userOption)) {
+    // Calculate the next hash value.
+    hashBlock(M.thirtytwo, H);
+ }
+```
+Inside the hashBlock method and number of steps are undertaken. 
+1. Firstly, the message is copied to a new 32 bit array represented as `W[]`. 
+2. The initial hash values or values from previous hash are copied to variable a, b, c, and d.
+3. Undertake 4 rounds of 16 transforms, 64 in total using the TRANSFORM method. I initially used one line for each transform, but I modified it to be completed in one loop to make the solution easier to understand. This took a lot of trial and error and testing to achieve due to the amount of values being changed and passed around. On each iteration of the inner loop the round number is set along with the message value to pass into the TRANSFORM. The maths to compute the messageIndex was adapted from MD5 Pseudocode [(MD5 Pseudocode)](https://en.wikipedia.org/wiki/MD5). If `i <16` then it is round 1, if  `i < 32` then it is round 2, and so on.
+``` 
+if (i < 16) {
+      messageIndex = i;
+      round = 1;
+}
+```
+This round number is then passed into the TRANSFORM function which is shown below. I have developed one function that performs all round transform in one simple to understand inline function. The specific auxiliary function is used for each round and the result is calculated. The bits are also shifted left `s` number of positions using the `ROTL` function.
+```
+// a, b, c, d – initial hash values.
+// m – message.
+// s – number of positions to shift left by.
+// t – 1 of 64 hash values defined in standard.
+// r = round number (1-4).
+// F(b,c,d) - 1 of 4 auxiliary functions.
+#define TRANSFORM(a, b, c, d, m, s, t, r) \
+{                                       			\
+   if (r == 1)                           		\
+      a += F(b, c, d) + m + t;            		\
+   else if (r == 2)                      		\
+      a += G(b, c, d) + m + t;            		\
+   else if (r == 3)                      		\
+      a += H(b, c, d) + m + t;           		\
+   else if (r == 4)                      		\
+      a += I(b, c, d) + m + t;           	 	\
+   a = b + ROTL(a, s);                   		\
+}
+```
+5. Once all transforms are applied append initial hash copies onto H[].
+
+#### Output
+When the message is hashed it is in big endian byte order, an initial check is done to check the architecture of the system. If it is a little-endian machine the results are converted. If the machine is big endian the result is just printed as the MD5 algorithm is completed using a big-endian byte order.
+
+
 
