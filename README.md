@@ -4,48 +4,38 @@
 
 **Student ID:** G00348036
 
-# Project statement
+## Project statement
 You must write a program in the C programming language [2] that calculates the MD5 hash digest of an input. The algorithm is specified in the Request For Comments 1321 document supplied by the Internet Engineering Task Force [5]. The only pre-requisite is that your program performs the algorithm — you are free to decide what input the algorithm should be performed on. I suggest you allow the user to input some free text or a filename via the command line.
 
-# Platforms
+## Platforms
 Coded and tested on a Linux Debian 10 (buster) Google Cloud Virtual Machine. All code was written in VI and compiled by connecting to the VM using SSH.
 
-# How to run program
-* First, clone the repository using the following command `git clone https://github.com/MatthewSloyan/MD5-message-digest-algorithm` 
-* Traverse using the command line to the folder you have cloned using the cd command.
-* Compile main.c file to execute using `gcc -o main main.c` or `make main` if build build-essentials is installed.
-* Execute file using `./main` to load menu UI or `./main <filename.ex>` to quickly hash a file. (filename.ex is the path to a file with  it's extension).
-* More information on how to use UI can be foud below in the User Guide section.
+## How to run and compile
+A full comprehensive guide on how to run and compile the program with and without command line arguments can be found in the "overview.md" document on this respository.
 
-# User Guide
-Below you’ll find a basic guide to the user interface, in the “How it works” section is a description of how this works in the code behind.
+## User Guide
+Below you’ll find a basic guide to the user interface. In the “How it works” section and "overview.md" is a description of how this works in the code behind.
 
-There are two ways to run the program, firstly it can be run quickly by using `./main test.txt` to get a hash result on the file passed in as a parameter (test.txt). To run the full program with a UI, enter `./main` and a menu will be presented with options 1, 2 or 0 which are described below. This menu loops until 0 is entered to allow the user to hash multiple files or strings.
+There are two ways to run the program, firstly it can be run quickly by using command line arguments to get a hash result on the file or string. Additional command line arguments can be included also (--help, --version, --clock, --print and --test). More information on all these arguments along with a full description on how to use them can be found in the "overview.md" document. To run the full program with a UI, enter `./main` and a menu will be presented with options 1, 2, 3 or 0 which are described below. This menu loops until 0 is entered to allow the user to hash multiple files or strings.
 
 * 1 – Allows the user to enter a string to hash. A prompt will be displayed to input a string. Once entered the program will hash the string and return the hash to the user.
 * 2 – Allows the user to enter a file to hash. A prompt will be displayed to input a file path to a chosen file E.g `TestCode/test.txt`. Once entered and the file is found the program will hash the file and return the result to the user.
+* 3 – Allows the user to run a series of predefined tests and compare the results using the OpenSSL standard. The same tests are run when entering `./main --test`.
 * 0 – Exit the program.
 
-On all three options the user then has the option to print the result to a file. Presented is a menu with options 1 or 2. 1 is Yes and 2 is No. If yes is selected the user is given the option to enter the file name. This must include the file extension such as .txt. This file will be written to the current directory.
+On all three options the user then has the option to print the result to a file. Presented is a menu with options 1 or 2 (1 is Yes and 2 is No). If yes is selected the user is given the option to enter the file name. This must include the file extension such as .txt. This file will be written to the current directory.
 
-### Test inputs
-A number of test values are supplied by the MD5 standard documentation [MD5 Documentation](https://tools.ietf.org/html/rfc1321), and are as follows. These can be entered into the string section or saved in a text file to be hashed. All these values are correct from testing.
-* ("") = d41d8cd98f00b204e9800998ecf8427e
-* ("a") = 0cc175b9c0f1b6a831c399e269772661
-* ("abc") = 900150983cd24fb0d6963f7d28e17f72
-* ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
-* ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
-* ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") = d174ab98d277d9f5a5611c2c9f419d9f
-* ("12345678901234567890123456789012345678901234567890123456789012345678901234567890") = 57edf4a22be3c955ac49da2e2107b67a
+### Testing and samples
+A description of my full testing efforts can found in the "overview.md" document.
 
-Below you'll find two samples of the program running as described above. This shows entering a string to hash and entering a file from the command line to hash.
+Below are some sample images of the application running and the results returned. The first image is running the application through the command line. The empty string “” is hashed, it is tested with the OpenSSL standard and the clock time is displayed. The second image shows the UI where a file is hashed, and the result is printed to a file.
 
+![MD5 Example 1](https://i.imgur.com/ukhAdGT.jpg)
 
-![MD5 Example 1](https://i.imgur.com/axhMKFK.jpg)
-![MD5 Example 2](https://i.imgur.com/rM51PfS.jpg)
+![MD5 Example 2](https://i.imgur.com/q2RqyHX.jpg)
 
-# How it works
-More information on each of these steps above can be found in the Research & Development Diary section below.
+## How it works
+More information on each of these steps above can be found in the Research & Development Diary section. This section has been improved and expanded for the final implementation in the "overview.md" document.
 
 ### What is the MD5 algorithm?
 MD5 is a hashing algorithm takes an input of any length and produces a 128-bit (4 x 32bit values) output or “message digest”. The MD5 algorithm is an extension of the MD4 message-digest algorithm however is slightly slower but more secure. However, the MD5 algorithm has been exploited and broken, so it is not advised for encryption purposes. It is still suitable for determining the partition for a key in a partitioned database [(MD5)]( https://en.wikipedia.org/wiki/MD5).
@@ -86,13 +76,13 @@ In each round auxiliary functions F, G, H, I are used to provide bit operations 
 Once all transforms are applied append initial values onto A B C D.
 
 ### Output
-When the message is hashed it is in big endian byte order, an initial check is done to check the architecture of the system. If it’s a little-endian machine the results is converted. If it’s big endian the result is just printed.
+When the message is hashed it is in big endian byte order, so the result is converted to little-endian. I initially had a check to print out in big endian but I have removed it from the final build as I couldn't test it correctly.
 
-After each output the user is given the option to print the hash to a file to be used and compared later. This works by passing the file pointer to [(fprintf)](https://www.tutorialspoint.com/c_standard_library/c_function_fprintf.htm), and using the same method to print to screen but instead it prints to a file. The menu loop then continues until 0 is entered.
+After each output in the menu or when `--print` is added the user is given the option to print the hash to a file to be used and compared later. This works by passing the file pointer to [(fprintf)](https://www.tutorialspoint.com/c_standard_library/c_function_fprintf.htm), and using the same method to print to screen but instead it prints to a file. The menu loop then continues until 0 is entered.
 
 More information on each of these steps above can be found in the Research & Development Diary section below.
 
-# Project Plan
+## Project Plan
 * Week 1 - Initial research and setup.
 * Week 2 - Setup Google Cloud VM and learn VI.
 * Week 3 - Write basic menu and file writing functions.
@@ -101,9 +91,10 @@ More information on each of these steps above can be found in the Research & Dev
 * Week 6 - Continue MD5 implementation.
 * Week 7 - Improve and test implementation.
 * Week 8 - Optimise solution.
-* Week 9 - Adding finishing touches, tidying up code, and adding extras.
+* Week 9 - Add finishing touches, tidy up code, and add extras.
+* Additional weeks - Implement testing, command line arguements, conduct research and write up overview.md.
 
-# Research & Development Diary
+## Research & Development Diary
 
 #### Start of Semester to 26-1-20
 Each week I watched the various videos posted on Moodle and read into more about each topic such as Hash Functions, Turing Machines, SHA and MD5 standard. I also researched online more about C and working with VI as we haven’t worked with this in a little while. This has really helped me with this project and will be a valuable skill going forward in my career. 
@@ -155,9 +146,9 @@ This week I continued working on the MD5 implementation. The program as is could
 
 #### Final week
 On the final week I worked on getting the project ready for submission, adding final documentation and more comments. Another thing I looked at was optimising the code. One area where I focused on was improving the hashing method and removing the number of lines it took. My initial version had 64 function calls to hash each block, there isn’t a way to cut down the number of functions calls but as it’s a similar code I felt a loop could be developed to clean it up. I took what I already had and started testing different ideas. I needed a way to get the message value index which is certain multiples for each round. E.g. In round 2 it goes 1, 6, 11, 0, 5, 10 etc. I implemented some simple logic adapted from MD5 pseudocode which solved this [(MD5 Pseudocode)](https://en.wikipedia.org/wiki/MD5). With this worked I needed to change my inline transform functions. I modified them to create one single inline function that would work for all rounds. The last step was to work out how to send a b c and d into this function as for every four iterations the values need to be shifted right once. To achieve this, I added a series of modulus statements such as i % 4 == 0, I % 4 == 1 etc. This cut down the code significantly and improved the code readability. I also made improvements to where the bytes where read in removing it from the padding and into the startMD5 function. This cleaned up the padding functions and it’s parameters. Lastly I implemented the ability to print the hash result to a file, so it could be saved and compared at a later date.
- 
-#### Conclusion
-Overall, I am very happy with how the project turned out, and it has been an extremely good learning experience. It was interesting working on a lower level than usual, which is something that will help me in my career. I have also learned a lot more about C, the compiler, little/big endian, bytes/bits and hashing algorithms amongst others.
+
+#### Additional weeks
+As the project was extended and made 100%, several additional requirements were added. These included testing and command line arguments. I began by adding command line arguments, initially I investigated the possible options and found [(getopts)](https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html). This would allow me to implement any number of arguments securely. I researched possible arguments and developed a suite of useful command. These include --file, --string, --help, --version, --clock, --print and --test. I also added full testing to the menu and command line arguments. This could be done using a set of predefined tests or a test could be run on a specific file or string. OpenSSL was used to compare these results, so it is correct. Lastly, I conducted a lot of research into the complexities of MD5 and some of the attempts to reverse the algorithm which helped me write the overview.md document. My efforts and additional work can be found in the overview.md document in this repository.
 
 ## References 
 All references are found in this README or code in respective areas.
@@ -184,3 +175,6 @@ https://www.youtube.com/watch?v=HMpB28l1sLc
 * MD5 Wiki - https://en.wikipedia.org/wiki/MD5
 * Read file for writing - https://www.tutorialspoint.com/cprogramming/c_file_io.htm
 * Read string into memory - https://www.includehelp.com/c/convert-ascii-string-to-byte-array-in-c.aspx
+* Read in file to memory - https://stackoverflow.com/questions/174531/how-to-read-the-content-of-a-file-to-a-string-in-c
+* Clock time - https://www.tutorialspoint.com/c_standard_library/c_function_clock.htm
+* getopt_long - https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html   
