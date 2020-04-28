@@ -7,6 +7,18 @@
 ## Project statement
 You must write a program in the C programming language [2] that calculates the MD5 hash digest of an input. The algorithm is specified in the Request For Comments 1321 document supplied by the Internet Engineering Task Force [5]. The only pre-requisite is that your program performs the algorithm — you are free to decide what input the algorithm should be performed on. I suggest you allow the user to input some free text or a filename via the command line.
 
+## Project Plan
+* Week 1 - Initial research and setup.
+* Week 2 - Setup Google Cloud VM and learn VI.
+* Week 3 - Write basic menu and file writing functions.
+* Week 4 - Start to implement the MD5 algorithm while continuing with videos.
+* Week 5 - Continue MD5 implementation.
+* Week 6 - Continue MD5 implementation.
+* Week 7 - Improve and test implementation.
+* Week 8 - Optimise solution.
+* Week 9 - Add finishing touches, tidy up code, and add extras.
+* Additional weeks - Implement testing, command line arguements, conduct research and write up overview.md.
+
 ## Platforms
 Coded and tested on a Linux Debian 10 (buster) Google Cloud Virtual Machine. All code was written in VI and compiled by connecting to the VM using SSH.
 
@@ -14,16 +26,20 @@ Coded and tested on a Linux Debian 10 (buster) Google Cloud Virtual Machine. All
 A full comprehensive guide on how to run and compile the program with and without command line arguments can be found in the "overview.md" document on this respository.
 
 ## User Guide
-Below you’ll find a basic guide to the user interface. In the “How it works” section and "overview.md" is a description of how this works in the code behind.
+Below you’ll find a basic guide to the user interface. In the “How it works” section and "overview.md" is a description of how this works in the code behind. Once compiled there are two ways to run the program, firstly by using command parameters and secondly using a simple to use UI.
 
-There are two ways to run the program, firstly it can be run quickly by using command line arguments to get a hash result on the file or string. Additional command line arguments can be included also (--help, --version, --clock, --print and --test). More information on all these arguments along with a full description on how to use them can be found in the "overview.md" document. To run the full program with a UI, enter `./main` and a menu will be presented with options 1, 2, 3 or 0 which are described below. This menu loops until 0 is entered to allow the user to hash multiple files or strings.
+### Run with command line parameters
+This application can handle multiple parameters, but some must be run together. These parameteres included (--string, --file, --help, --version, --clock, --print and --test). A better description of what these parameters do and how they work can be found in the "overview.md" document.
+
+### Run with UI
+To run the full program with a UI, enter `./main` and a menu will be presented with options 1, 2, 3 or 0 which are described below. This menu loops until 0 is entered to allow the user to hash multiple files or strings.
 
 * 1 – Allows the user to enter a string to hash. A prompt will be displayed to input a string. Once entered the program will hash the string and return the hash to the user.
 * 2 – Allows the user to enter a file to hash. A prompt will be displayed to input a file path to a chosen file E.g `TestCode/test.txt`. Once entered and the file is found the program will hash the file and return the result to the user.
 * 3 – Allows the user to run a series of predefined tests and compare the results using the OpenSSL standard. The same tests are run when entering `./main --test`.
 * 0 – Exit the program.
 
-On all three options the user then has the option to print the result to a file. Presented is a menu with options 1 or 2 (1 is Yes and 2 is No). If yes is selected the user is given the option to enter the file name. This must include the file extension such as .txt. This file will be written to the current directory.
+On option 1 and 2 the user has the option to print the result to a file. Presented is a menu with options 1 or 2 (1 is Yes and 2 is No). If yes is selected the user is given the option to enter the file name. This must include the file extension such as .txt. This file will be written to the current directory.
 
 ### Testing and samples
 A description of my full testing efforts can found in the "overview.md" document.
@@ -81,18 +97,6 @@ When the message is hashed it is in big endian byte order, so the result is conv
 After each output in the menu or when `--print` is added the user is given the option to print the hash to a file to be used and compared later. This works by passing the file pointer to [(fprintf)](https://www.tutorialspoint.com/c_standard_library/c_function_fprintf.htm), and using the same method to print to screen but instead it prints to a file. The menu loop then continues until 0 is entered.
 
 More information on each of these steps above can be found in the Research & Development Diary section below.
-
-## Project Plan
-* Week 1 - Initial research and setup.
-* Week 2 - Setup Google Cloud VM and learn VI.
-* Week 3 - Write basic menu and file writing functions.
-* Week 4 - Start to implement the MD5 algorithm while continuing with videos.
-* Week 5 - Continue MD5 implementation.
-* Week 6 - Continue MD5 implementation.
-* Week 7 - Improve and test implementation.
-* Week 8 - Optimise solution.
-* Week 9 - Add finishing touches, tidy up code, and add extras.
-* Additional weeks - Implement testing, command line arguements, conduct research and write up overview.md.
 
 ## Research & Development Diary
 
