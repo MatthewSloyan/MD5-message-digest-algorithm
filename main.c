@@ -90,12 +90,7 @@ const uint32_t T[64] = {
 // Pad0 = get to eof, don't have enough space to do all padding. Pad rest with 0's
 // pad1 = read to end block perfectly, E.g 512 bits + padding. 1 bit + 450 0 bits.
 // Finish = Done all padding.
-enum flag
-{
-  READ,
-  PAD0,
-  FINISH
-};
+enum flag { READ, PAD0, FINISH };
 
 // Union block that occupies the same address space and can take the form of a 64, 32, or 8 bit integer.
 // Used to hold message.
@@ -107,6 +102,7 @@ union block {
 };
 
 // Options used by getops_options.
+// This contains all command line arguements and checks if arguements are required.
 // Code adapted from: https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
 static struct option long_options[] =
 {
@@ -125,7 +121,7 @@ static struct option long_options[] =
 // Global variable used to determine if little or big endian machine.
 unsigned int order;
 
-// === Hashing ===
+// === HASHING ===
 // Function that hashes each 16 bit block,
 // Using steps defined in section 3.4: https://tools.ietf.org/html/rfc1321
 void hashBlock(WORD *M, WORD *H)
@@ -201,7 +197,7 @@ void hashBlock(WORD *M, WORD *H)
   H[0] += a;  H[1] += b;  H[2] += c;  H[3] += d;
 }
 
-// === Padding ===
+// === PADDING ===
 // block *M - pointer to message block
 // bytesread - the number of bytes read in from file or string.
 // *nobits - the length of the initial message to be appended to 448 bit block.
@@ -291,9 +287,10 @@ int padBlock(union block *M, FILE *infile, char *str, uint64_t *nobits, enum fla
   return 1;
 }
 
-// == Helper Functions ==
+// == HELPER FUNCTIONS ==
 // Check if the current machine is little or big endian.
-// I learned more about Enianness from: https://en.wikipedia.org/wiki/Endianness
+// I initially had this implemented when printing results but 
+// I have removed it in my final build as I couldn't test it properly.
 // Code adapted from: https://helloacm.com/how-to-find-out-whether-a-machine-is-big-endian-or-little-endian-in-cc/
 int checkByteOrder()
 {
@@ -305,26 +302,16 @@ int checkByteOrder()
 // Print hash result to file.
 void printToScreen(WORD *H, int order)
 {
-  printf("Hash: \t ");
+  printf("Hash Result:   ");
 
-  // Print final result in either little or big endian depending on check at the start.
-  if (order == 1)
+  // I originally had a seperate for loop that printed the result in big endian but as I couldn't
+  // test this properly I have removed it for now. It would be something I would look at in future development.
+  for (int i = 0; i < 4; i++)
   {
-    for (int i = 0; i < 4; i++)
-    {
-      // Display result in little endian.
-      // Code adapted from: https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
-      printf("%02x%02x%02x%02x", (H[i] >> 0) & 0x000000ff, (H[i] >> 8) & 0x000000ff,
-             (H[i] >> 16) & 0x000000ff, (H[i] >> 24) & 0x000000ff);
-    }
-  }
-  else if (order == 0)
-  {
-    // Print as is, in big endian.
-    for (int i = 0; i < 4; i++)
-    {
-      printf("%08" PRIx32 "", H[i]);
-    }
+    // Display result in little endian.
+    // Code adapted from: https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
+    printf("%02x%02x%02x%02x", (H[i] >> 0) & 0x000000ff, (H[i] >> 8) & 0x000000ff,
+           (H[i] >> 16) & 0x000000ff, (H[i] >> 24) & 0x000000ff);
   }
 
   printf("\n");
@@ -367,30 +354,19 @@ void printToFile(WORD *H, int order)
         printf("Error: Creating file. Please try again.\n");
       }
       else
-      {
-        // Print in either little or big endian depending on check at the start.
-        if (order == 1)
+      { 
+        // I originally had a seperate for loop that printed the result in big endian to a file but as I couldn't
+        // test this properly I have removed it for now. It would be something I would look at in future development.
+        for (int i = 0; i < 4; i++)
         {
-          for (int i = 0; i < 4; i++)
-          {
-            // Display result in little endian.
-            // Code adapted from: https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
-            fprintf(file, "%02x%02x%02x%02x", (H[i] >> 0) & 0x000000ff, (H[i] >> 8) & 0x000000ff,
-                    (H[i] >> 16) & 0x000000ff, (H[i] >> 24) & 0x000000ff);
-          }
+          // Print result to file in little endian.
+          // Code adapted from: https://stackoverflow.com/questions/4169424/little-endian-big-endian-problem
+          fprintf(file, "%02x%02x%02x%02x", (H[i] >> 0) & 0x000000ff, (H[i] >> 8) & 0x000000ff,
+                  (H[i] >> 16) & 0x000000ff, (H[i] >> 24) & 0x000000ff);
         }
-        else if (order == 0)
-        {
-          // Print as is, in big endian.
-          for (int i = 0; i < 4; i++)
-          {
-            fprintf(file, "%08" PRIx32 "", H[i]);
-          }
-        }
-
-        printf("\nResult printed to file successfully\n");
       }
 
+      printf("\nResult printed to file successfully\n");
       fclose(file);
       break;
     case 2:
@@ -410,19 +386,19 @@ void menuSystem(unsigned int *userOption)
   // Loop until correct input is entered.
   do
   {
-    printf("\nPlease select an option\n [1] Enter text to hash\n [2] Hash with file\n");
+    printf("\nPlease select an option\n [1] Enter text to hash\n [2] Hash with file \n [3] Run predefined tests\n");
     printf(" [0] To Exit\n");
     scanf("%d", &userOptionCopy);
 
     // userOption is updated back in main.
     *userOption = userOptionCopy;
 
-    if (*userOption < 0 || *userOption > 2)
+    if (*userOption < 0 || *userOption > 3)
     {
       printf("Error! The value entered must be between 0 and 2, please try again\n");
     }
 
-  } while (*userOption < 0 || *userOption > 2); //validation to allow only numbers between 0 and 2
+  } while (*userOption < 0 || *userOption > 3); //validation to allow only numbers between 0 and 2
 }
 
 // These 32 bit registers are initialized to the following values in hexadecimal, high-order bytes first.
@@ -434,7 +410,7 @@ void initialiseHash(WORD *H)
   H[3] = 0x10325476;
 }
 
-// == MD5 Runner ==
+// == MD5 RUNNER ==
 // MD5 method which controls, hashing and printing final hash values.
 // Can take in string or file values.
 void startMD5(WORD *H, FILE *infile, char *str, unsigned int userOption)
@@ -444,6 +420,7 @@ void startMD5(WORD *H, FILE *infile, char *str, unsigned int userOption)
   uint64_t nobits = 0;
   enum flag status = READ;
 
+  // Initialise the hash values each time.
   initialiseHash(H);
 
   // == PADDING & HASHING ==
@@ -459,7 +436,8 @@ void startMD5(WORD *H, FILE *infile, char *str, unsigned int userOption)
   printToScreen(H, order);  
 }
 
-// == HELP Display ==
+// == COMMAND LINE ARGUEMNENTS ==
+// Display Help (--help/-h)
 void displayHelp()
 {
   printf("\nBelow is some of the useful features of the application and how to run them.\n\n");
@@ -479,23 +457,25 @@ void displayHelp()
   printf("E.g (--file/-f, --string/-s, --test/-t, --clock/-c, --print/-p, --help/-h, --version/-v)\n\n");
 }
 
-// == Display Version ==
+// Display Version (--version/-v)
 void displayVersion()
 {
   printf("\nVERSION:    1.0\n");
-  printf("\nDEVELOPER:  Matthew Sloyan\n\n");
+  printf("DEVELOPER:  Matthew Sloyan\n\n");
 }
 
-// == Display Clock Time ==
+// Display Clock Time (--time/-t)
 void displayClockTime(clock_t start_t)
 {
+  // Using the start time calculate the seconds on the CPU.
   // Code adapted from: https://www.tutorialspoint.com/c_standard_library/c_function_clock.htm
   clock_t end_t = clock();
   double total_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
   printf("Time taking by CPU: %lf\n", total_t);
 }
 
-// == Tests ==
+// == TESTS ==
+// Run specific tests on file or string using OpenSSL (--test/-t)
 void runSpecificTest(WORD *H, char *fileName, char *str, unsigned int userOption)
 {
   unsigned char result[16];
@@ -514,16 +494,16 @@ void runSpecificTest(WORD *H, char *fileName, char *str, unsigned int userOption
     MD5(str, strlen(str), result);
   }
 
-  printf("OpenSSL: ");
+  printf("OpenSSL Test:  ");
  
-  // output
+  // output result
   for(int i = 0; i < 16; i++){
     printf("%02x", result[i]);
   }  
   printf("\n");
 }
 
-// Run predefined tests.
+// Run predefined tests, outlined in MD5 standard and compare against OpenSSL.
 void runTests(WORD *H)
 {
   char arr[6][128] = {
@@ -533,7 +513,7 @@ void runTests(WORD *H)
 
   for (int i = 0; i < 6; i++)
   {
-    printf("Value:   %s", arr[i]);
+    printf("Initial Value: %s", arr[i]);
     printf("\n");
 
     // Run startMD5 with string option.
@@ -545,7 +525,7 @@ void runTests(WORD *H)
   }
 }
 
-// == main == 
+// == MAIN == 
 // Runner that handles different ways to run program.
 // E.g. Hashing from file through command line parameter, hash string or hash a file from a file path.
 int main(int argc, char *argv[])
@@ -561,6 +541,8 @@ int main(int argc, char *argv[])
 
   // Test wheter were on little or big endian machine.
   // Stored as global variable as it's never edited.
+  // I initially had this implemented when printing results but 
+  // I have removed it in my final build as I couldn't test it properly.
   order = checkByteOrder();
 
   // Check if there's input from the comand line,
@@ -570,6 +552,7 @@ int main(int argc, char *argv[])
     // getopt_long stores the option index here.
     int option_index = 0;
 
+    // Loop over all command line arguements and check if valid, if so act accordingly.
     // Code adapted from: https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html   
     while ((c = getopt_long (argc, argv, "hvtcps:f:", long_options, &option_index)) != -1){
 
@@ -635,9 +618,10 @@ int main(int argc, char *argv[])
       startMD5(H, infile, "", 0);
 
       // Check if flags for running time, tests on file, and print to file.
+      // Check in here to ensure only run when file or string is present.
       if (tFlag == 1){
         runSpecificTest(H, fileToHash, "", 0);
-        printf ("Please note: Specific tests can only be run with .txt files or files.\n");
+        printf ("Please note: Specific tests can only be run with text files.\n");
       }
       if (pFlag == 1)
         printToFile(H, order);
@@ -676,7 +660,7 @@ int main(int argc, char *argv[])
         printf("\nPlease enter the string you would like to hash: ");
         scanf("%s", userString);
 
-        printf("\nInput String: %s \n", userString);
+        printf("\nInput String:  %s \n", userString);
 
         // Start hashing the string. 1 = string.
         startMD5(H, infile, userString, 1);
@@ -701,6 +685,10 @@ int main(int argc, char *argv[])
 
         // Ask the user if they would like to print result to file.
         printToFile(H, order);
+        break;
+      case 3:
+        // Print predefined tests.
+        runTests(H);
         break;
       default:
         printf("Invalid option\n");
