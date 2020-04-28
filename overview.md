@@ -52,7 +52,11 @@ To run the full program with a UI, enter “./main” and a menu will be present
 The menu UI contains all the customisable parameters described above automatically after each hash result is returned. Information such as printing to file, running tests on the hash result, and displaying the running time are automatically displayed.
 
 ### Samples
-Below are some sample images of the application running and the results returned. The first image is running the application through the command line. The string “abc” is hashed, it is tested with the OpenSSL standard and the clock time is displayed. The second image shows the UI where a file is hashed, and the result is printed to a file.
+Below are some sample images of the application running and the results returned. The first image is running the application through the command line. The empty string “” is hashed, it is tested with the OpenSSL standard [12] and the clock time is displayed. The second image shows the UI where a file is hashed, and the result is printed to a file. The t
+
+![MD5 Example 1](https://i.imgur.com/ukhAdGT.jpg)
+
+![MD5 Example 2](https://i.imgur.com/q2RqyHX.jpg)
 
 ## Test
 I lot of testing went into to the development process, as described in the developer diary section of the README. After every new feature or change I made I would run several hashing tests on both files and strings. I would then compare the results with the samples supplied in the MD5 standard. Once I had full testing suites implemented, I would run my results with the testing method I created which sped up the testing process.
@@ -65,6 +69,10 @@ In the application I have implemented testing for the user to compare their resu
 4. ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
 5. ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
 6. ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") = d174ab98d277d9f5a5611c2c9f419d9f
+
+The below image shows the predefined being run using `./main --test`. `--test` can be also run on specific files or strings as mentioned above. 
+
+![MD5 Example 3](https://i.imgur.com/tfiezo1.jpg)
 
 ## Algorithm
 As outlined in the MD5 standard documentation there is five steps to perform the algorithm [10]. We will first look at these five steps and then step through the implementation of this algorithm in this repository.
@@ -189,7 +197,15 @@ The algorithm produces a 128-bit output or 4 x 32bits. This provides 2^128 possi
 ##### Big O
 The Big O time complexity of the algorithm is O(N) and runs a total of 8\*n/512 times, with 'n' being the number of bytes in the message. If a message were 1000 bytes, it would run 16 times, as the last block would be padded to complete the 512-bit message. The running time is directly proportional to the input size. There are also no inner loops, just 64 predefined transforms on each iteration. 
 ##### Running Time
-The running time of the MD5 algorithm is considerably fast due to its low number of transforms in comparison to other algorithms [13]. In my tests of the algorithm, it could be seen to take an average of 4.4 milliseconds to hash a file 100mb in size. However, as the speed of this algorithm is largely dependent on the computer hardware used this could vary between different machines. For these tests it was run on a Linux Debian 10 (buster) Google Cloud Virtual Machine. Below is an outline of the same test run multiple times.
+The running time of the MD5 algorithm is considerably fast due to its low number of transforms in comparison to other algorithms [13]. In my tests of the algorithm, it could be seen to take an average of 9.1 seconds to hash a file 1GB in size. This file was generated using `fallocate -l 1G test.img`. However, as the speed of this algorithm is largely dependent on the computer hardware used this could vary between different machines. For these tests it was run on a Linux Debian 10 (buster) Google Cloud Virtual Machine. Below is an outline of the tests mentioned above.
+
+| Attempt | Running time (s) |
+| ------- | ---------------- |
+| 1       | 9.178970         |
+| 2       | 9.135272         |
+| 3       | 9.110160         |
+| 4       | 9.151310         |
+| 5       | 9.120555         |
 
 #### How can the MD5 algorithm be reversed?
 Essentially a message digest is irreversible due to its nature. A hash algorithm is a one-way function and the initial state is lost and is transformed into a final output as mentioned above. A simple analogy for this is if you have a cow, then you convert it into a steak, would you be able to make it into a cow again? The answer is no, and hashing algorithms work in the same way.  However, hashing functions can be broken, or collisions can be found which we will now look at [7].
