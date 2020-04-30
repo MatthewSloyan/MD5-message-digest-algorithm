@@ -29,7 +29,7 @@ Initially execute the compiled application using `./main` along with any of the 
 #### --file/-f
 Command parameter that handles file input. To use this command enter `./main --file filename.txt`.  ‘-f’ can also be used instead of `--file`. This will read the file you have specified and returned the hash result to the user. `filename.txt` is the name of your file, with its extension. The file name is required and will display an error if not present. 
 #### --string/-s
-Command parameter that handles string input. To use this command enter `./main --string ‘Sample String`.  ‘-s’ can also be used instead of `--file`. Brackets around the string are only required for string longer than one word. This will read the string you have specified and returned the hash result to the user. ‘Sample String’ is the string that will be hashed. This string is required and will display an error if not present. 
+Command parameter that handles string input. To use this command enter `./main --string ‘Sample String`.  ‘-s’ can also be used instead of `--string`. Brackets around the string are only required for string longer than one word. This will read the string you have specified and returned the hash result to the user. ‘Sample String’ is the string that will be hashed. This string is required and will display an error if not present. 
 
 ### Additional Parameters (Optional)
 #### --version/-v
@@ -37,7 +37,7 @@ This command can be added to the end of any input, and can be run on its own wit
 #### --help/-h
 This command can be added to the end of any input, and can be run on its own with `./main --help` or `./main -h`. It displays useful information about how to run the application.
 #### --print/-p
-This command parameter must be added along with the `--file/-f` or `--string/-s`. It allows the user to print the hash result returned to a file for later use. Presented is a menu with options 1 or 2. (1 = Yes and 2 = No). If yes is selected the user is given the option to enter a file name. This must include the file extension such as `.txt`. This file will be written to the current directory if just the file name is supplied. However, if `Test/Test.txt` it will be written to the folder Test.
+This command parameter must be added along with the `--file/-f` or `--string/-s`. It allows the user to print the hash result returned to a file for later use. Presented is a menu with options 1 or 2. (1 = Yes and 2 = No). If yes is selected the user is given the option to enter a file name. This must include the file extension such as `.txt`. This file will be written to the current directory if just the file name is supplied. However, if `Test/Test.txt` is included it will be written to the folder `Test` in the current directory.
 #### --running/-r
 This command parameter must be added along with the `--file/-f` or `--string/-s`. It displays the running time of the hashing algorithm on a given string or file.
 #### --test/-t
